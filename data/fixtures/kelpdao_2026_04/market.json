@@ -1,0 +1,23 @@
+{
+  "market_id": "0xa7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8",
+  "loan_asset_symbol": "USDC",
+  "loan_asset_decimals": 6,
+  "collateral_asset_symbol": "rsETH",
+  "collateral_asset_decimals": 18,
+  "lltv": 0.86,
+  "fee": 0.0,
+  "oracle_kind": "chainlink",
+  "snapshot_block": 21924000,
+  "snapshot_ts": "2026-04-19T23:59:00Z",
+  "total_supply_assets": 45000000.0,
+  "total_borrow_assets": 38000000.0,
+  "total_supply_shares": 45000000.0,
+  "total_borrow_shares": 38000000.0,
+  "oracle_price_at_snapshot": 3050.0,
+  "rate_at_target_at_snapshot": 0.045,
+  "n_positions_seed": 250,
+  "irm_target_utilization": 0.9,
+  "irm_curve_steepness": 4.0,
+  "irm_adjustment_speed": 50.0,
+  "notes": "Stylized snapshot. Position-level state is synthesized in fixture loader."
+}

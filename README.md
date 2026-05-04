@@ -41,22 +41,26 @@ morpho-blue-liquidity-stress/
 | **0** | Methodological note (`docs/METHODOLOGY.md`) | ✅ v0.2 |
 | **1** | Stress scenario formalization (`docs/SCENARIOS.md`) | ✅ v0.1 |
 | **2** | Data acquisition architecture (`docs/DATA.md`) + storage layer + tests | ✅ partial — architecture done, fetch scripts as skeletons |
-| **3** | Modeling: LCR_onchain, NSFR_conditional, slippage model, MC | ⏳ pending |
-| **4** | Historical backtest (KelpDAO + 2 secondary events) | ⏳ pending |
+| **3** | Modeling: IRM static + slippage + S1 + liquidation engine + mock data | ✅ done |
+| **3.5** | IRM full adaptive + Uniswap V3 geometric TWAP + S3 + Monte Carlo + Hypothesis | ✅ done |
+| **4** | Historical backtest framework (`docs/BACKTEST.md`) + 3 event fixtures | ✅ done — 3/3 events flagged including KelpDAO anchor |
 | **5** | Forward-looking stress on top-5 markets | ⏳ pending |
 | **6** | Public deliverables (Dune dashboard, Mirror article, X thread) | ⏳ pending |
 
-## Quick start (Phase 2 architecture)
+## Quick start
 
 ```bash
-# Install
+# Install (using uv, the recommended Python package manager)
 uv venv && source .venv/bin/activate
 uv pip install -e ".[dev]"
 
-# Run the test suite (17 tests, ~2s)
+# Run the test suite (112 tests, ~3s)
 PYTHONPATH=src pytest tests/ -v
 
-# Set up local config
+# Run the Phase 3.5 end-to-end demo
+PYTHONPATH=src python notebooks/phase35_demo.py
+
+# Set up local config (for Phase 2 data acquisition, when fetchers are implemented)
 cp config.yaml config.local.yaml  # then edit to add secrets via env vars
 ```
 

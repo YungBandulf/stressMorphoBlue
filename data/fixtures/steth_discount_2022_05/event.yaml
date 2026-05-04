@@ -1,0 +1,30 @@
+event_id: "steth_discount_2022_05"
+event_name: "stETH discount during Terra/UST collapse (counterfactual on Morpho Blue)"
+event_ts: "2022-05-12T09:00:00Z"
+t0_ts: "2022-05-11T09:00:00Z"
+window_pre_days: 4
+window_post_days: 5
+affected_collaterals: ["stETH"]
+affected_loan_assets: ["WETH"]
+counterfactual: true
+expected_red_flag: true
+notes: |
+  stETH/ETH ratio fell to ~0.94 around 2022-05-12 as Terra/UST collapse
+  triggered redemption queue concerns at Lido. Pre-Shapella, stETH had
+  no withdrawal mechanism; the Curve stETH/ETH pool was the de facto
+  exit liquidity, and it became heavily skewed.
+
+  Counterfactual: Morpho Blue did not exist. We construct a hypothetical
+  stETH/WETH Morpho Blue market with the LLTV typical of LST collateral
+  today (90%) and a Chainlink stETH/ETH oracle.
+
+  Sources:
+    - Curve.fi historical pool composition (stETH/ETH pool 0xDC24...)
+    - Lido blog and tweet thread May 2022
+    - Aave V2 stETH market state archives
+
+  Calibration choices:
+    - LLTV = 0.90 (typical LST/WETH Morpho LLTV)
+    - rate_at_target = 0.025 (2.5% APR)
+    - Position distribution: 150 positions, leveraged stETH carry trades
+      with high LTV (LTV ~ Beta(7, 2) capped at LLTV - 1bp)

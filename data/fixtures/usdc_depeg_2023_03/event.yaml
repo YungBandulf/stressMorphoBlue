@@ -1,0 +1,30 @@
+event_id: "usdc_depeg_2023_03"
+event_name: "USDC depeg from SVB collapse (counterfactual on Morpho Blue)"
+event_ts: "2023-03-11T12:00:00Z"
+t0_ts: "2023-03-10T12:00:00Z"
+window_pre_days: 3
+window_post_days: 6
+affected_collaterals: ["USDC"]
+affected_loan_assets: ["USDT"]
+counterfactual: true
+expected_red_flag: true
+notes: |
+  USDC depegged following Silicon Valley Bank collapse (March 2023).
+  Circle held ~$3.3B at SVB. Secondary markets traded USDC at ~$0.88
+  briefly on 2023-03-11.
+
+  Counterfactual: Morpho Blue did not exist at this time. We construct
+  a hypothetical USDC/USDT Morpho Blue market with parameters typical
+  of stable-on-stable lending today (high LLTV, USDC oracle = Chainlink
+  USDC/USD which was sticky during the depeg).
+
+  Sources:
+    - Circle blog 2023-03-11: "Update on USDC reserves"
+    - CoinGecko historical USDC/USD
+    - DeFi Pulse / Aave V2 USDC market state archives
+
+  Calibration choices:
+    - LLTV = 0.945 (typical stable/stable Morpho LLTV)
+    - rate_at_target = 0.04 (4% APR)
+    - Position distribution: 100 positions, log-normal sizes, leveraged
+      stable carry trades (LTV ~ Beta(8, 2) capped at LLTV - 1bp)

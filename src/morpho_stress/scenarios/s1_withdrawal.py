@@ -89,8 +89,8 @@ def stress_s1(initial_state: MarketState, cfg: S1Config) -> Trajectory:
     horizon = cfg.horizon_blocks
 
     for k in range(1, horizon + 1):
-        # 1. Accrue interest from previous block
-        new_supply, new_borrow = accrue(
+        # 1. Accrue interest from previous block (with adaptive rate_at_target update)
+        new_supply, new_borrow, new_rate = accrue(
             state.total_supply_assets,
             state.total_borrow_assets,
             state.params.fee,
@@ -112,6 +112,7 @@ def stress_s1(initial_state: MarketState, cfg: S1Config) -> Trajectory:
             block_ts=state.block_ts + BLOCK_TIME_SEC,
             total_supply_assets=new_supply_after_w,
             total_borrow_assets=new_borrow,
+            rate_at_target=new_rate,
             queued_withdrawals=state.queued_withdrawals + unhonored,
         )
 

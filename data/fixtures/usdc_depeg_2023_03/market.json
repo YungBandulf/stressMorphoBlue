@@ -1,0 +1,23 @@
+{
+  "market_id": "0xb1c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8",
+  "loan_asset_symbol": "USDT",
+  "loan_asset_decimals": 6,
+  "collateral_asset_symbol": "USDC",
+  "collateral_asset_decimals": 6,
+  "lltv": 0.945,
+  "fee": 0.0,
+  "oracle_kind": "chainlink",
+  "snapshot_block": 16800000,
+  "snapshot_ts": "2023-03-10T12:00:00Z",
+  "total_supply_assets": 30000000.0,
+  "total_borrow_assets": 26000000.0,
+  "total_supply_shares": 30000000.0,
+  "total_borrow_shares": 26000000.0,
+  "oracle_price_at_snapshot": 1.000,
+  "rate_at_target_at_snapshot": 0.04,
+  "n_positions_seed": 100,
+  "irm_target_utilization": 0.9,
+  "irm_curve_steepness": 4.0,
+  "irm_adjustment_speed": 50.0,
+  "notes": "Counterfactual USDC/USDT Morpho Blue market at T0 = 2023-03-10 12:00 UTC."
+}

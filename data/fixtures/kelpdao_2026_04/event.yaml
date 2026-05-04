@@ -1,0 +1,29 @@
+event_id: "kelpdao_2026_04"
+event_name: "KelpDAO LRT exploit (counterfactual on Morpho Blue)"
+event_ts: "2026-04-20T14:00:00Z"
+t0_ts: "2026-04-19T23:59:00Z"
+window_pre_days: 5
+window_post_days: 5
+affected_collaterals: ["rsETH"]
+affected_loan_assets: ["USDC"]
+counterfactual: false
+expected_red_flag: true
+notes: |
+  KelpDAO LRT collateral exploit. ~$292M drained from Aave; ~$196M
+  bad debt on Aave V3. Morpho Blue isolated markets using rsETH as
+  collateral were affected through cascading liquidations.
+
+  This fixture represents a stylized rsETH/USDC Morpho Blue market
+  with parameters and TVL representative of mainnet at T0.
+
+  Sources:
+    - Coverage of event: rekt.news (publication date 2026-04-21)
+    - Aave governance forum post-mortem thread (2026-04-22+)
+    - Morpho team status update (2026-04-21)
+    - On-chain: rsETH/USDC Uniswap V3 trades for slippage calibration
+
+  Calibration choices:
+    - LLTV = 0.86 (typical for LRT/USDC Morpho markets)
+    - rate_at_target = 0.045 (4.5% APR)
+    - Position distribution: 250 positions, log-normal sizes,
+      LTV ~ Beta(7, 3) capped at LLTV - 1bp

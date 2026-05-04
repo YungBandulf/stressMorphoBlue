@@ -1,0 +1,23 @@
+{
+  "market_id": "0xc1c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8b7c8",
+  "loan_asset_symbol": "WETH",
+  "loan_asset_decimals": 18,
+  "collateral_asset_symbol": "stETH",
+  "collateral_asset_decimals": 18,
+  "lltv": 0.90,
+  "fee": 0.0,
+  "oracle_kind": "chainlink",
+  "snapshot_block": 14750000,
+  "snapshot_ts": "2022-05-11T09:00:00Z",
+  "total_supply_assets": 50000.0,
+  "total_borrow_assets": 42000.0,
+  "total_supply_shares": 50000.0,
+  "total_borrow_shares": 42000.0,
+  "oracle_price_at_snapshot": 2040.0,
+  "rate_at_target_at_snapshot": 0.025,
+  "n_positions_seed": 150,
+  "irm_target_utilization": 0.9,
+  "irm_curve_steepness": 4.0,
+  "irm_adjustment_speed": 50.0,
+  "notes": "Counterfactual stETH/WETH Morpho Blue market at T0 = 2022-05-11 09:00 UTC. Loan asset is WETH; supply/borrow assets are denominated in WETH. The oracle reports stETH price in USD (rather than stETH/WETH ratio) for compatibility with the framework's USD-denominated price series; our scenario engine converts internally."
+}

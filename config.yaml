@@ -1,0 +1,37 @@
+# config.yaml — TEMPLATE
+# Copy to config.local.yaml and fill in secrets via env vars.
+# config.local.yaml is gitignored.
+
+network:
+  chain_id: 1
+  rpc_url: "https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}"
+  rpc_url_fallback: "https://eth.llamarpc.com"
+
+# Morpho Blue mainnet deployment.
+# Verify against https://docs.morpho.org/getting-started/resources/addresses
+# before any production run.
+morpho_blue:
+  contract: "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFFb"
+
+subgraph:
+  # Hosted Morpho Blue subgraph — confirm latest URL on
+  # https://docs.morpho.org/morpho/tutorials/subgraph
+  url: "https://api.thegraph.com/subgraphs/name/morpho-org/morpho-blue"
+  api_key: "${GRAPH_API_KEY}"  # optional on hosted, required on decentralized network
+
+oneinch:
+  api_url: "https://api.1inch.dev/swap/v6.0/1"
+  api_key: "${ONEINCH_API_KEY}"
+
+sampling:
+  market_state_period_blocks: 1800   # ≈ 6h on Ethereum (12s/block)
+  oracle_price_period_blocks: 300    # ≈ 1h
+  position_snapshot_period_blocks: 7200  # ≈ daily
+
+range:
+  start_ts: "2025-05-01T00:00:00Z"
+  end_ts: "2026-05-01T00:00:00Z"
+
+# Top-3 markets — selected at Phase 2 day 1 by scripts/select_markets.py
+# Frozen here as 32-byte market ids.
+markets: []

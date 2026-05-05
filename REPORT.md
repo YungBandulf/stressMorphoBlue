@@ -48,28 +48,28 @@ against historical events.
 This work formalises the transposition. We build:
 
 - An on-chain analogue of the Liquidity Coverage Ratio (the regulatory
-  ratio defined in BCBS 238, 2013, which requires regulated banks to
-  hold sufficient liquid assets to cover stressed outflows over 30
-  days; see §2.1 below);
+ ratio defined in BCBS 238, 2013, which requires regulated banks to
+ hold sufficient liquid assets to cover stressed outflows over 30
+ days; see §2.1 below);
 - A Monte Carlo simulation framework over an empirical distribution of
-  collateral price drawdowns;
+ collateral price drawdowns;
 - A falsifiable validation procedure with three pre-specified
-  pass-or-fail criteria.
+ pass-or-fail criteria.
 
 The choice of Morpho Blue as the target protocol is motivated by:
 
 - **Architectural simplicity**: Morpho Blue is a non-custodial lending
-  protocol implemented in approximately 650 lines of Solidity, with
-  isolated lending markets and immutable parameters. This produces a
-  small surface area and a well-defined mathematical state vector for
-  each market.
+ protocol implemented in approximately 650 lines of Solidity, with
+ isolated lending markets and immutable parameters. This produces a
+ small surface area and a well-defined mathematical state vector for
+ each market.
 - **Industry positioning in 2026**: following the KelpDAO collateral
-  exploit of April 2026, approximately 8 billion U.S. dollars of Total
-  Value Locked has migrated from Aave to Morpho (per public on-chain
-  data observed at the time of writing). Risk methodology adapted to
-  Morpho's isolated-market design is in active demand among the
-  protocol's MetaMorpho vault curators, including Steakhouse
-  Financial, Block Analitica, and B.Protocol.
+ exploit of April 2026, approximately 8 billion U.S. dollars of Total
+ Value Locked has migrated from Aave to Morpho (per public on-chain
+ data observed at the time of writing). Risk methodology adapted to
+ Morpho's isolated-market design is in active demand among the
+ protocol's MetaMorpho vault curators, including Steakhouse
+ Financial, Block Analitica, and B.Protocol.
 
 This work is methodological. The contribution is a falsifiable,
 reproducible adaptation of regulatory liquidity standards to one
@@ -85,8 +85,7 @@ production-grade risk-monitoring system nor a security audit.
 The Liquidity Coverage Ratio defined by the Basel Committee in BCBS
 238 (2013) is
 
-$$\text{Liquidity Coverage Ratio} \;=\;
-\frac{\text{High Quality Liquid Assets}}{\text{Net cash outflows over 30 days}} \;\geq\; 100\%.$$
+$$\text{Liquidity Coverage Ratio} = \frac{\text{High Quality Liquid Assets}}{\text{Net cash outflows over 30 days}} \geq 100\%.$$
 
 We construct an **on-chain Liquidity Coverage Ratio** for a Morpho Blue
 lending market. The numerator (High Quality Liquid Assets, a Basel
@@ -100,21 +99,21 @@ text:
 For a Morpho Blue lending market, our adaptation is as follows. Let:
 
 - $S$ denote the total supply of the loan asset (denoted
-  `total_supply_assets` on-chain), in units of the loan asset;
+ `total_supply_assets` on-chain), in units of the loan asset;
 - $B$ denote the total borrow of the loan asset (denoted
-  `total_borrow_assets` on-chain), in units of the loan asset;
+ `total_borrow_assets` on-chain), in units of the loan asset;
 - $L = S - B$ denote the instantaneous available liquidity, in units
-  of the loan asset;
+ of the loan asset;
 - $\Lambda$ denote the liquidation loan-to-value threshold (the
-  market's parameter, fixed at market creation), a number in $[0, 1]$;
+ market's parameter, fixed at market creation), a number in $[0, 1]$;
 - For each borrower $i$: $b_i$ the borrower's debt (in loan-asset
-  units), $c_i$ the borrower's collateral (in collateral-asset units);
+ units), $c_i$ the borrower's collateral (in collateral-asset units);
 - $P$ denote the oracle-reported price of one collateral unit in
-  loan-asset units;
+ loan-asset units;
 - $\pi(V) = a \cdot V^b$ denote the slippage of a sale of $V$
-  collateral-asset units on a decentralised exchange, expressed as a
-  fraction of the oracle price; the parameters $a > 0$ and $b \in (0,1)$
-  are fitted from data per the Almgren–Chriss model (see §2.4).
+ collateral-asset units on a decentralised exchange, expressed as a
+ fraction of the oracle price; the parameters $a > 0$ and $b \in (0,1)$
+ are fitted from data per the Almgren–Chriss model (see §2.4).
 
 The **on-chain Level 1 component** is the available liquidity:
 $L_1 = L$.
@@ -128,18 +127,18 @@ at 15%) and sells it on the decentralised exchange at the realised
 price $P \cdot (1 - \pi(\cdot))$. The recovery for the supplier pool
 from position $i$ is
 
-$$r_i \;=\; \min\Bigl(c_i \cdot P \cdot (1 - \pi(c_i)),\; b_i \cdot \phi(\Lambda)\Bigr) \;-\; \text{bad-debt}_i$$
+$$r_i = \min\Bigl(c_i \cdot P \cdot (1 - \pi(c_i)), b_i \cdot \phi(\Lambda)\Bigr) - \mathrm{BD}_i$$
 
 where the cap at $b_i \cdot \phi(\Lambda)$ reflects that the
 protocol does not benefit from over-collateralisation (any surplus
 returns to the borrower) and where the **bad debt** for position $i$
 is
 
-$$\text{bad-debt}_i \;=\; \max\Bigl(0,\; b_i - c_i \cdot P \cdot (1 - \pi(c_i))\Bigr),$$
+$$\mathrm{BD}_i = \max\Bigl(0, b_i - c_i \cdot P \cdot (1 - \pi(c_i))\Bigr),$$
 
 i.e., the unrecoverable shortfall when realised proceeds fall below
 the position's debt. The aggregate Level 2A is then
-$L_{\text{2A,net}} = \sum_i r_i$.
+$L_{2A,\mathrm{net}} = \sum_i r_i$.
 
 This formulation **differs from a literal Basel haircut transposition**
 on a critical point: the Basel haircut applies to a notional asset
@@ -149,13 +148,13 @@ in earlier versions of this work (see §3 of [`SCENARIOS.md`](./SCENARIOS.md)
 for the full discussion).
 
 The **on-chain numerator** is then
-$\text{High Quality Liquid Assets}_{\text{on-chain}} = L_1 + L_{\text{2A,net}}$.
+$\mathrm{HQLA}_{\mathrm{onchain}} = L_1 + L_{2A,\mathrm{net}}$.
 
 The **on-chain denominator** (net cash outflows under stress) is
 parameterised by an **outflow fraction** $\alpha$, the fraction of
 total supply withdrawn during the 24-hour stress window:
 
-$$\text{Net cash outflows}_{\text{on-chain}}(\alpha) \;=\; \alpha \cdot S \;-\; \min\bigl(L_{\text{2A,net}},\; 0.75 \cdot \alpha S\bigr).$$
+$$\mathrm{Outflows}_{\mathrm{onchain}}(\alpha) = \alpha \cdot S - \min\bigl(L_{2A,\mathrm{net}}, 0.75 \cdot \alpha S\bigr).$$
 
 The cap at 75% of outflows reproduces BCBS 238 Annex 4 §170, which
 limits the offset between secured-lending inflows and outflows.
@@ -164,22 +163,22 @@ The **outflow fraction $\alpha$ is event-calibrated** from the
 empirical distribution of 24-hour drawdowns of the collateral price.
 We use
 
-$$\alpha \;=\; \min\Bigl(0.60,\; \max\bigl(0.05,\; 1.5 \cdot q_{0.99}(\text{drawdowns}) + 0.30 \cdot \mathbf{1}\{q_{0.99} > 0.05\}\bigr)\Bigr)$$
+$$\alpha = \min\Bigl(0.60, \max\bigl(0.05, 1.5 \cdot q_{0.99}(\mathrm{drawdowns}) + 0.30 \cdot \mathbf{1}\{q_{0.99} > 0.05\}\bigr)\Bigr)$$
 
-where $q_{0.99}(\text{drawdowns})$ is the 99th-percentile empirical
+where $q_{0.99}(\mathrm{drawdowns})$ is the 99th-percentile empirical
 quantile of drawdowns, and $\mathbf{1}\{\cdot\}$ the indicator
 function. The constant $1.5$ and the additive term $0.30$ are
 calibrated from observations of withdrawal velocity in real events:
 
 - During the KelpDAO event of April 2026, the Aave Total Value Locked
-  fell by approximately 17% in 48 hours, peaking at approximately 10%
-  in 24 hours — implying a withdrawal multiplier in the range
-  $[1.4, 1.7]$ relative to the contemporaneous price drawdown.
+ fell by approximately 17% in 48 hours, peaking at approximately 10%
+ in 24 hours — implying a withdrawal multiplier in the range
+ $[1.4, 1.7]$ relative to the contemporaneous price drawdown.
 - During the USDC depeg of March 2023, the Aave USDC market saw
-  approximately 25% withdrawals on day one — consistent with a
-  multiplier of $1.5$ applied to a drawdown of $\approx 12\%$, plus
-  a whale-concentration term capturing rapid exit by the largest
-  suppliers.
+ approximately 25% withdrawals on day one — consistent with a
+ multiplier of $1.5$ applied to a drawdown of $\approx 12\%$, plus
+ a whale-concentration term capturing rapid exit by the largest
+ suppliers.
 
 The whale-concentration term (the additive $0.30 \cdot \mathbf{1}\{q_{0.99} > 0.05\}$)
 reflects the empirical observation that the top five suppliers in
@@ -321,7 +320,7 @@ The collateral assets in the roster are:
 - **WBTC** — wrapped Bitcoin (an Ethereum representation of Bitcoin);
 - **cbBTC** — Coinbase-wrapped Bitcoin;
 - **sUSDe** — staked Ethena USD (a yield-bearing synthetic stablecoin
-  issued by Ethena Labs);
+ issued by Ethena Labs);
 - **weETH** — wrapped, Ether-denominated EtherFi liquid restaking token.
 
 | Market | Total Value Locked (millions of U.S. dollars) | Utilisation $U$ | Liquidation threshold $\Lambda$ | 99th-percentile drawdown |
@@ -362,20 +361,20 @@ Value Locked**. The mechanism is structural rather than a quirk of
 our parameterisation:
 
 - **Tight buffer between average loan-to-value and the liquidation
-  threshold**: with average loan-to-value at 86% and a liquidation
-  threshold at 91.5%, the headroom is 5.5%. Any drawdown larger than
-  this margin liquidates the bulk of positions.
+ threshold**: with average loan-to-value at 86% and a liquidation
+ threshold at 91.5%, the headroom is 5.5%. Any drawdown larger than
+ this margin liquidates the bulk of positions.
 - **High utilisation**: $U = 93\%$ leaves little instant liquidity to
-  absorb withdrawals during stress.
+ absorb withdrawals during stress.
 - **Slippage worse than for stablecoin-to-stablecoin pairs**:
-  sUSDe-to-USDC liquidity on Uniswap V3 is meaningfully thinner than
-  USDC-to-USDT pairs. Our fitted parameter $a$ is roughly four times
-  that of major stablecoin pools (see [`SCENARIOS.md`](./SCENARIOS.md)
-  §4.1 for the slippage parameterisation).
+ sUSDe-to-USDC liquidity on Uniswap V3 is meaningfully thinner than
+ USDC-to-USDT pairs. Our fitted parameter $a$ is roughly four times
+ that of major stablecoin pools (see [`SCENARIOS.md`](./SCENARIOS.md)
+ §4.1 for the slippage parameterisation).
 - **Empirical drawdown is non-zero**: even with a 99th-percentile
-  drawdown of only 6%, the distribution has support near and above
-  the liquidation-threshold margin, so every Monte Carlo path that
-  samples a tail drawdown produces some bad debt.
+ drawdown of only 6%, the distribution has support near and above
+ the liquidation-threshold margin, so every Monte Carlo path that
+ samples a tail drawdown produces some bad debt.
 
 This finding is **structural**: the same conclusion holds across
 reasonable parameter perturbations. Lowering the liquidation
@@ -399,43 +398,43 @@ interpretability of the headline numbers, and decentralised-finance
 risk reporting often omits such caveats.
 
 1. **The bad-debt distribution has heavy tails on a small sample.**
-   Our Monte Carlo simulations use 50 to 200 paths drawn from a
-   fitted Beta empirical distribution. The 99th-percentile estimate
-   has wide confidence intervals; for sUSDe/USDC at probability 100%
-   the result is robust to sampling, but tail magnitudes for
-   less-stressed markets (wstETH, WBTC) are small numbers dominated
-   by sampling noise.
+ Our Monte Carlo simulations use 50 to 200 paths drawn from a
+ fitted Beta empirical distribution. The 99th-percentile estimate
+ has wide confidence intervals; for sUSDe/USDC at probability 100%
+ the result is robust to sampling, but tail magnitudes for
+ less-stressed markets (wstETH, WBTC) are small numbers dominated
+ by sampling noise.
 2. **Counterfactual events are weakly identified.** The USDC and
-   staked-Ether events predate Morpho Blue. We synthesised position
-   distributions for them, calibrated to plausible parameters of
-   current practice. The PASS verdict on the USDC event is more
-   robust than the FAIL verdict on the staked-Ether event because the
-   USDC drawdown is large enough to drive a clear signal; the
-   staked-Ether outcome depends on a distinction between 24-hour and
-   multi-day stress that the framework was not designed to make.
+ staked-Ether events predate Morpho Blue. We synthesised position
+ distributions for them, calibrated to plausible parameters of
+ current practice. The PASS verdict on the USDC event is more
+ robust than the FAIL verdict on the staked-Ether event because the
+ USDC drawdown is large enough to drive a clear signal; the
+ staked-Ether outcome depends on a distinction between 24-hour and
+ multi-day stress that the framework was not designed to make.
 3. **Maximal-extractable-value and liquidator-competition effects are
-   not modelled.** Liquidations are assumed to occur atomically and
-   to succeed at the modelled decentralised-exchange price. In
-   reality, gas-price competition during stress events can leave some
-   liquidations unprofitable for the intended liquidator, displacing
-   them. This bias is conservative for our Level 2A recovery (we
-   overstate it) and underestimates bad debt.
+ not modelled.** Liquidations are assumed to occur atomically and
+ to succeed at the modelled decentralised-exchange price. In
+ reality, gas-price competition during stress events can leave some
+ liquidations unprofitable for the intended liquidator, displacing
+ them. This bias is conservative for our Level 2A recovery (we
+ overstate it) and underestimates bad debt.
 4. **Endogenous oracle feedback is partially modelled.** Exogenous
-   oracles (Chainlink, Pyth, Redstone) are handled correctly:
-   liquidator selling does not affect the oracle. Time-Weighted
-   Average Price oracles from Uniswap V3 receive endogenous
-   decentralised-exchange-price propagation through the time-weighted
-   average smoothing, but the current framework does not solve the
-   within-block fixed point implied by full liquidation cascades; we
-   model sequentially within each block.
+ oracles (Chainlink, Pyth, Redstone) are handled correctly:
+ liquidator selling does not affect the oracle. Time-Weighted
+ Average Price oracles from Uniswap V3 receive endogenous
+ decentralised-exchange-price propagation through the time-weighted
+ average smoothing, but the current framework does not solve the
+ within-block fixed point implied by full liquidation cascades; we
+ model sequentially within each block.
 5. **Three events is a small sample for backtest validation.**
-   Statistical significance is not claimed; the two-of-three pass
-   rate is illustrative of the framework's discrimination, not a
-   frequentist guarantee.
+ Statistical significance is not claimed; the two-of-three pass
+ rate is illustrative of the framework's discrimination, not a
+ frequentist guarantee.
 6. **The forward-looking market parameters are representative.** A
-   production deployment would replace these with live subgraph and
-   remote-procedure-call reads. The architecture for this is in
-   place; the parameters here are not authoritative.
+ production deployment would replace these with live subgraph and
+ remote-procedure-call reads. The architecture for this is in
+ place; the parameters here are not authoritative.
 
 ---
 
@@ -444,16 +443,16 @@ risk reporting often omits such caveats.
 The full pipeline is open-source. Key features:
 
 - **Versioned event fixtures** under `data/fixtures/<event-id>/` with
-  per-row source attribution, reproducible from the fixture
-  generation script.
+ per-row source attribution, reproducible from the fixture
+ generation script.
 - **145 unit and property-based tests** with the `pytest` and
-  `hypothesis` libraries.
+ `hypothesis` libraries.
 - **Demonstration notebooks** for each phase of the work, runnable
-  with the command `PYTHONPATH=src python notebooks/phase{N}_demo.py`.
+ with the command `PYTHONPATH=src python notebooks/phase{N}_demo.py`.
 - **Strict typed schemas** (using PyArrow and Pandera) gate every
-  Parquet write, preventing silent type drift between data and model.
+ Parquet write, preventing silent type drift between data and model.
 - **Manifest-tracked runs** with configuration hashes for full
-  pipeline reproducibility.
+ pipeline reproducibility.
 
 The repository structure, methodology, scenario specification, data
 architecture, and backtest specification are documented in the files
@@ -469,20 +468,20 @@ Selected anchors. The full bibliography is in
 and on-chain terms are in [`GLOSSARY.md`](./GLOSSARY.md).
 
 - Bank for International Settlements. *Basel III: The Liquidity
-  Coverage Ratio and liquidity risk monitoring tools.*
-  Publication BCBS 238, 2013.
+ Coverage Ratio and liquidity risk monitoring tools.*
+ Publication BCBS 238, 2013.
 - Bank for International Settlements. *Basel III: The Net Stable
-  Funding Ratio.* Publication BCBS 295, 2014.
+ Funding Ratio.* Publication BCBS 295, 2014.
 - Chiu, J., Ozdenoren, E., Yuan, K., Zhang, S. *On the inherent
-  fragility of decentralised-finance lending.* Bank for International
-  Settlements Working Paper 1062, 2023.
+ fragility of decentralised-finance lending.* Bank for International
+ Settlements Working Paper 1062, 2023.
 - Gudgeon, L., Werner, S. M., Perez, D., Knottenbelt, W. J.
-  *Decentralised-finance protocols for loanable funds.* Financial
-  Cryptography 2020.
+ *Decentralised-finance protocols for loanable funds.* Financial
+ Cryptography 2020.
 - Almgren, R., Chriss, N. *Optimal execution of portfolio
-  transactions.* Journal of Risk, 2000.
+ transactions.* Journal of Risk, 2000.
 - Morpho Labs. *Morpho Blue Whitepaper* and *Morpho Blue Yellow
-  Paper*, 2024.
+ Paper*, 2024.
 
 ---
 

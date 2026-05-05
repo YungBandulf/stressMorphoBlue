@@ -43,9 +43,9 @@ morpho-blue-liquidity-stress/
 | **2** | Data acquisition architecture (`docs/DATA.md`) + storage layer + tests | ✅ partial — architecture done, fetch scripts as skeletons |
 | **3** | Modeling: IRM static + slippage + S1 + liquidation engine + mock data | ✅ done |
 | **3.5** | IRM full adaptive + Uniswap V3 geometric TWAP + S3 + Monte Carlo + Hypothesis | ✅ done |
-| **4** | Historical backtest framework (`docs/BACKTEST.md`) + 3 event fixtures | ✅ done — 3/3 events flagged including KelpDAO anchor |
-| **5** | Forward-looking stress on top-5 markets | ⏳ pending |
-| **6** | Public deliverables (Dune dashboard, Mirror article, X thread) | ⏳ pending |
+| **4** | Historical backtest framework (`docs/BACKTEST.md`) + 3 event fixtures | ✅ done — 3/3 events processed |
+| **5** | v0.3 framework (LCR refactored, alpha calibrated) + slippage fit + forward-looking + writeup (`docs/REPORT.md`) | ✅ done — sUSDe/USDC identified as dominant tail risk |
+| **6** | Public deliverables (Dune dashboard, Mirror article publication, X thread) | ⏳ pending publication |
 
 ## Quick start
 

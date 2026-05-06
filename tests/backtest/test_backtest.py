@@ -128,7 +128,7 @@ def test_format_verdict_runs_without_error(slippage_curve_lrt) -> None:
 def test_metrics_populated(slippage_curve_lrt) -> None:
     fixture = load_event(FIXTURES_ROOT / "kelpdao_2026_04")
     verdict = run_backtest(fixture, slippage_curve_lrt, n_mc_paths=20)
-    assert "LCR_onchain" in verdict.metrics
+    assert "LCR_onchain_v03" in verdict.metrics
     assert "time_to_illiquid_hours" in verdict.metrics
     assert "P_bad_debt_gt_0" in verdict.metrics
     # All metrics should be finite

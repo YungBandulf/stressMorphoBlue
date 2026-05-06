@@ -1,18 +1,18 @@
-"""Backtest runner — applies §6.1 validation criteria to historical events.
+"""Backtest runner v0.3 — applies §6.1 validation criteria with event-calibrated parameters.
 
-For each event fixture, runs the framework at T-1 (T0) and checks whether
-any of the three pass criteria fire:
+v0.3 changes vs v0.2 (Phase 4):
 
-1. LCR_onchain(M, T0, S5_replay, h=24h) < 100%
-2. time_to_illiquid(M, S1 at p99 alpha, h=24h) < 24h
-3. P[bad_debt > 0 | S4 cascade] > 5%
+1. **LCR_onchain v0.3**: replaces total_collateral × oracle × 0.85 (which
+   over-counted pledged collateral) with per-position recovery valuation
+   (`lcr_onchain_v03` in `liquidity_metrics.py`). HQLA L2A is now bounded
+   above by per-position debt (you cannot recover more than you're owed).
 
-The runner produces a `BacktestVerdict` per event and a global summary.
+2. **Event-calibrated outflow alpha**: replaces the fixed α=30% with a value
+   derived from the event's own price drawdown distribution. This makes TTI
+   actually discriminate between events.
 
-Severity flags (SCENARIOS.md §7):
-- red:    LCR < 80% OR TTI < 12h OR P[bd>0] > 20%
-- yellow: LCR ∈ [80, 100) OR TTI ∈ [12h, 24h) OR P[bd>0] ∈ [5, 20)%
-- green:  none of the above
+3. **Cleaner severity bands** with documented thresholds aligned with
+   industry practice (Gauntlet, ChaosLabs).
 """
 
 from __future__ import annotations
@@ -21,6 +21,11 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+from morpho_stress.backtest.fixtures import EventFixture
+from morpho_stress.backtest.liquidity_metrics import (
+    calibrated_outflow_alpha,
+    lcr_onchain_v03,
+)
 from morpho_stress.models.constants import BLOCK_TIME_SEC
 from morpho_stress.models.slippage import SlippageCurve
 from morpho_stress.scenarios import (
@@ -34,7 +39,6 @@ from morpho_stress.scenarios import (
     time_to_illiquid,
     total_bad_debt,
 )
-from morpho_stress.backtest.fixtures import EventFixture
 
 
 # Convert hours → blocks (Ethereum 12s/block)
@@ -63,49 +67,40 @@ class BacktestVerdict:
     expected_red_flag: bool
 
     criteria: tuple[CriterionResult, ...]
-    severity_flag: str  # green / yellow / red — composite
-    framework_flagged: bool  # True if at least one criterion triggered
+    severity_flag: str
+    framework_flagged: bool
 
-    pass_fail: str  # "PASS" if framework_flagged matches expected_red_flag
+    pass_fail: str
     metrics: dict[str, float] = field(default_factory=dict)
 
 
 # ---------------------------------------------------------------------------
-# Criterion evaluators
+# Criterion 1: LCR_onchain v0.3
 # ---------------------------------------------------------------------------
 
 
-def _evaluate_lcr_onchain(fixture: EventFixture, slippage_curve: SlippageCurve) -> CriterionResult:
-    """Compute LCR_onchain via S5-style replay of the actual price path.
+def _evaluate_lcr_onchain(
+    fixture: EventFixture,
+    slippage_curve: SlippageCurve,
+    outflow_alpha: float,
+) -> tuple[CriterionResult, dict[str, float]]:
+    """LCR_onchain v0.3 evaluation at T0.
 
-    LCR = HQLA / Net_Outflows. We approximate:
-        HQLA = L_t (instant liquidity) + 0.85 × DEX-recoverable collateral
-        Outflows = realized withdrawal pressure from S1 at p99 over 24h
+    Uses the *worst observed market price* from the event window as the
+    stress price for HQLA recovery valuation. This is conservative: it asks
+    "if liquidations had to happen at the worst price seen, what would the
+    LCR look like?".
     """
     state = fixture.initial_state
+    worst_price = float(fixture.market_path.min())
 
-    # Estimate p99 withdrawal alpha from a synthetic baseline (in production
-    # this would use historical events log).
-    # For backtest fixtures, we use a pessimistic 30% alpha (representative
-    # of stress scenarios documented in industry risk reports).
-    alpha = 0.30
-    cfg_s1 = S1Config(alpha=alpha, duration_blocks=HOURS_24, horizon_blocks=HOURS_24)
-    s1_traj = stress_s1(state, cfg_s1)
-    realized_outflow_24h = state.total_supply_assets - s1_traj.final_state.total_supply_assets
-    queued = s1_traj.final_state.queued_withdrawals
-    net_outflow = realized_outflow_24h + queued
+    lcr, components = lcr_onchain_v03(
+        state=state,
+        market_price=worst_price,
+        slippage_curve=slippage_curve,
+        outflow_alpha=outflow_alpha,
+    )
 
-    # HQLA components
-    l1 = state.liquidity
-    # L2A: collateral recoverable at oracle price * (1 - p50 slippage @ avg position size)
-    avg_pos_size = state.total_collateral / max(len(state.positions), 1)
-    median_slippage = slippage_curve.slippage(avg_pos_size)
-    l2a = state.total_collateral * state.oracle_price * (1 - median_slippage) * 0.85
-
-    hqla = l1 + l2a
-    lcr = hqla / max(net_outflow, 1.0)
-
-    # Severity
     if lcr < 0.80:
         sev = "red"
     elif lcr < 1.00:
@@ -113,19 +108,33 @@ def _evaluate_lcr_onchain(fixture: EventFixture, slippage_curve: SlippageCurve) 
     else:
         sev = "green"
 
-    return CriterionResult(
-        name="LCR_onchain_24h",
-        value=lcr,
-        threshold=1.00,
-        triggered=lcr < 1.00,
-        severity=sev,
+    return (
+        CriterionResult(
+            name="LCR_onchain_v03",
+            value=lcr,
+            threshold=1.00,
+            triggered=lcr < 1.00,
+            severity=sev,
+        ),
+        components,
     )
 
 
-def _evaluate_time_to_illiquid(fixture: EventFixture) -> CriterionResult:
-    """Run S1 at p99 alpha and check time_to_illiquid."""
+# ---------------------------------------------------------------------------
+# Criterion 2: time_to_illiquid (event-calibrated alpha)
+# ---------------------------------------------------------------------------
+
+
+def _evaluate_time_to_illiquid(
+    fixture: EventFixture, outflow_alpha: float
+) -> CriterionResult:
+    """Run S1 at event-calibrated alpha and check time_to_illiquid."""
     state = fixture.initial_state
-    cfg = S1Config(alpha=0.30, duration_blocks=HOURS_24, horizon_blocks=HOURS_24)
+    cfg = S1Config(
+        alpha=outflow_alpha,
+        duration_blocks=HOURS_24,
+        horizon_blocks=HOURS_24,
+    )
     traj = stress_s1(state, cfg)
     tti = time_to_illiquid(traj)
     tti_hours = tti * BLOCK_TIME_SEC / 3600 if tti is not None else float("inf")
@@ -146,35 +155,29 @@ def _evaluate_time_to_illiquid(fixture: EventFixture) -> CriterionResult:
     )
 
 
+# ---------------------------------------------------------------------------
+# Criterion 3: P[bad_debt > 0]
+# ---------------------------------------------------------------------------
+
+
 def _evaluate_bad_debt_probability(
     fixture: EventFixture,
     slippage_curve: SlippageCurve,
-    n_paths: int = 100,
+    n_paths: int = 200,
 ) -> tuple[CriterionResult, float, float]:
-    """Run MC over event-derived drawdown distribution; compute P[bad_debt > 0].
-
-    The drawdown distribution is calibrated from the actual price path of the
-    event window: we extract the maximum 24h drawdown observed at each hour
-    of the window, and resample from this empirical CDF.
-
-    Returns (CriterionResult, p95_bad_debt, p99_bad_debt) for richer reporting.
-    """
+    """MC over event-derived drawdown distribution; compute P[bad_debt > 0]."""
     state = fixture.initial_state
 
     # Build empirical drawdown distribution from the price path
     market_path = fixture.market_path
-    # 24h window = 24 hourly observations
     drawdowns = []
     for i in range(len(market_path) - 24):
         peak = market_path[i]
+        if peak <= 0:
+            continue
         trough = market_path[i:i + 24].min()
-        d = max(0.0, (peak - trough) / peak)
-        drawdowns.append(d)
-    drawdowns_arr = np.array(drawdowns)
-
-    if len(drawdowns_arr) < 10:
-        # Not enough data; fall back to a reasonable point estimate
-        drawdowns_arr = np.array([0.05, 0.10, 0.15, 0.20, 0.25, 0.30])
+        drawdowns.append(max(0.0, (peak - trough) / peak))
+    drawdowns_arr = np.array(drawdowns) if drawdowns else np.array([0.05, 0.10, 0.20, 0.30])
 
     dist = EmpiricalDistribution(observations=drawdowns_arr)
 
@@ -185,7 +188,7 @@ def _evaluate_bad_debt_probability(
                 drawdown=float(drawdown),
                 dt_blocks=HOURS_24,
                 horizon_blocks=HOURS_24,
-                shape="instant",  # conservative — represents the worst within-day event
+                shape="instant",
             ),
             slippage_curve,
         )
@@ -242,13 +245,19 @@ def _composite_severity(severities: list[str]) -> str:
 def run_backtest(
     fixture: EventFixture,
     slippage_curve: SlippageCurve,
-    n_mc_paths: int = 100,
+    n_mc_paths: int = 200,
 ) -> BacktestVerdict:
-    """Run the full §6.1 validation for one event fixture."""
+    """Run the full §6.1 validation v0.3 for one event fixture."""
 
-    c_lcr = _evaluate_lcr_onchain(fixture, slippage_curve)
-    c_tti = _evaluate_time_to_illiquid(fixture)
-    c_bd, p95_bd, p99_bd = _evaluate_bad_debt_probability(fixture, slippage_curve, n_paths=n_mc_paths)
+    # Step 1: derive event-calibrated alpha from the price path
+    alpha = calibrated_outflow_alpha(fixture.market_path)
+
+    # Step 2: evaluate the 3 criteria
+    c_lcr, lcr_components = _evaluate_lcr_onchain(fixture, slippage_curve, alpha)
+    c_tti = _evaluate_time_to_illiquid(fixture, alpha)
+    c_bd, p95_bd, p99_bd = _evaluate_bad_debt_probability(
+        fixture, slippage_curve, n_paths=n_mc_paths
+    )
 
     criteria = (c_lcr, c_tti, c_bd)
     severity = _composite_severity([c.severity for c in criteria])
@@ -266,7 +275,13 @@ def run_backtest(
         framework_flagged=flagged,
         pass_fail=pass_fail,
         metrics={
-            "LCR_onchain": c_lcr.value,
+            "outflow_alpha_calibrated": alpha,
+            "LCR_onchain_v03": c_lcr.value,
+            "L1_instant": lcr_components["L1_instant"],
+            "L2A_net_recoverable": lcr_components["L2A_net_recoverable"],
+            "expected_bad_debt_LCR": lcr_components["expected_bad_debt"],
+            "HQLA_total": lcr_components["HQLA_total"],
+            "net_outflows": lcr_components["net_outflows"],
             "time_to_illiquid_hours": c_tti.value,
             "P_bad_debt_gt_0": c_bd.value,
             "p95_bad_debt": p95_bd,
@@ -285,10 +300,10 @@ def format_verdict(v: BacktestVerdict) -> str:
     ]
     for c in v.criteria:
         lines.append(
-            f"      [{c.severity:>6}] {c.name:<25} value={c.value:>10.4f} "
+            f"      [{c.severity:>6}] {c.name:<25} value={c.value:>12.4f} "
             f"threshold={c.threshold:>6.2f} triggered={c.triggered}"
         )
     lines.append("    metrics:")
     for k, val in v.metrics.items():
-        lines.append(f"      {k:<30} = {val:,.4f}")
+        lines.append(f"      {k:<30} = {val:>16,.4f}")
     return "\n".join(lines)

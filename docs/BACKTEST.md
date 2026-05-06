@@ -22,11 +22,15 @@ within the same section.
 Validate the stress framework against real historical events. The
 pass-or-fail criterion from [`SCENARIOS.md §6.1`](./SCENARIOS.md) is
 precise: applied at $t_0$ = one day before the event, the framework
-must flag at least one of:
+must flag at least one of (notation: $\mathrm{LCR_{oc}}$ denotes the
+on-chain Liquidity Coverage Ratio defined in
+[`METHODOLOGY.md §2.1`](./METHODOLOGY.md); $\mathrm{TTI}$ denotes
+time-to-illiquid; $\sigma_{Sk}$ denotes stress scenario $k$ from
+[`SCENARIOS.md §3`](./SCENARIOS.md)):
 
-- *On-chain Liquidity Coverage Ratio*: $\mathrm{LCR}_{\mathrm{onchain}}(M, t_0, \sigma_{\mathrm{S5}}, h = 24\text{h}) < 100\%$;
-- *Time-to-illiquid*: $\mathrm{TTI}(M, \sigma_{\mathrm{S1}, q_{0.99}}, h = 24\text{h}) < 24$ hours;
-- *Bad-debt probability*: $\Pr[\text{bad debt} > 0 \mid \sigma_{\mathrm{S4}}] > 5\%$.
+- *On-chain Liquidity Coverage Ratio*: $\mathrm{LCR_{oc}}(M, t_0, \sigma_{S5}, h = 24\text{h}) < 100\%$;
+- *Time-to-illiquid*: $\mathrm{TTI}(M, \sigma_{S1,q_{0.99}}, h = 24\text{h}) < 24$ hours;
+- *Bad-debt probability*: $\Pr[\text{bad debt} > 0 \mid \sigma_{S4}] > 5\%$.
 
 If the framework fails this test, we report honestly. There are three
 possible explanations:
@@ -225,10 +229,10 @@ KelpDAO event must pass absolutely (it is the primary anchor).
 **Severity flags** (from [`SCENARIOS.md §7`](./SCENARIOS.md)):
 
 - **Red**: at least one criterion is triggered with margin
-  ($\mathrm{LCR}_{\mathrm{onchain}} < 80\%$, time-to-illiquid $< 12$
+  ($\mathrm{LCR_{oc}} < 80\%$, time-to-illiquid $< 12$
   hours, or $\Pr[\text{bad debt} > 0] > 20\%$);
 - **Yellow**: criterion is triggered weakly
-  ($\mathrm{LCR}_{\mathrm{onchain}} \in [80\%, 100\%)$, time-to-illiquid
+  ($\mathrm{LCR_{oc}} \in [80\%, 100\%)$, time-to-illiquid
   $\in [12\text{h}, 24\text{h})$, or $\Pr[\text{bad debt} > 0] \in [5\%, 20\%)$);
 - **Green**: no criterion is triggered.
 

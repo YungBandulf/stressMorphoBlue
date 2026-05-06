@@ -48,7 +48,7 @@ little or no loss in value during a stress scenario. Tiered into three
 levels:
 
 - **Level 1**: cash, central-bank reserves, top-rated sovereign debt.
- Haircut: 0%.
+  Haircut: 0%.
 - **Level 2A**: highly liquid corporate or covered bonds. Haircut: 15%.
 - **Level 2B**: lower-rated corporate or equity. Haircut: 25–50%.
 
@@ -94,9 +94,9 @@ A resampling method: draw $n$ values with replacement from a sample to
 construct an empirical distribution. We use two variants:
 
 - **Independent and identically distributed bootstrap (i.i.d. bootstrap)**:
- draw each value independently with replacement.
+  draw each value independently with replacement.
 - **Block bootstrap**: draw contiguous blocks of size $k$ to preserve
- short-range autocorrelation in time-series data.
+  short-range autocorrelation in time-series data.
 
 ### Monte Carlo simulation
 A numerical method that approximates a probability distribution or
@@ -164,7 +164,7 @@ becomes liquidatable. Denoted $\Lambda$ in our formulas. Typical values:
 The multiplier applied to a borrower's debt when seizing collateral, in
 favour of the liquidator. Morpho Blue formula:
 
-$$\text{Liquidation incentive factor} = \min\Bigl(1.15, \frac{1}{0.3 \cdot \Lambda + 0.7}\Bigr)$$
+$$\text{Liquidation incentive factor} = \min\left(1.15, \frac{1}{0.3 \cdot \Lambda + 0.7}\right)$$
 
 For $\Lambda = 0.86$, the factor is approximately $1.043$ (4.3% bonus).
 The cap at $1.15$ ensures the bonus does not grow unboundedly for
@@ -179,11 +179,11 @@ described below.
 The canonical Morpho Blue interest rate model. Two layers:
 
 - **Curve layer**: piecewise function of utilisation $U$, passing
- through a parameter `rate_at_target` at $U = U_{\text{target}}$ (the
- target utilisation, a market parameter, typically 90%).
+  through a parameter `rate_at_target` at $U = U_{\text{target}}$ (the
+  target utilisation, a market parameter, typically 90%).
 - **Adaptive layer**: `rate_at_target` itself drifts over time as a
- function of the deviation between observed and target utilisation,
- bounded by `min_rate_at_target` and `max_rate_at_target`.
+  function of the deviation between observed and target utilisation,
+  bounded by `min_rate_at_target` and `max_rate_at_target`.
 
 ### Utilisation
 The ratio of borrowed loan asset to supplied loan asset:
@@ -199,13 +199,13 @@ A contract that reports the price of the collateral asset in loan-asset
 units. Different price-discovery mechanisms exist; we model two:
 
 - **Exogenous oracle** (e.g., Chainlink, Pyth, Redstone): reports an
- off-chain price aggregated independently of any on-chain swap. Liquidator
- selling does not affect the oracle's reading.
+  off-chain price aggregated independently of any on-chain swap. Liquidator
+  selling does not affect the oracle's reading.
 - **Time-Weighted Average Price oracle from a decentralised exchange**
- (e.g., Uniswap V3): reports the geometric mean of recent on-chain
- trade prices over a window. Liquidator selling moves the underlying
- exchange price, which propagates into the oracle through the time
- average.
+  (e.g., Uniswap V3): reports the geometric mean of recent on-chain
+  trade prices over a window. Liquidator selling moves the underlying
+  exchange price, which propagates into the oracle through the time
+  average.
 
 ### Time-Weighted Average Price
 The price obtained by averaging instantaneous prices over a time window,
@@ -249,7 +249,7 @@ decentralised-finance reporting.
 ### Bad debt
 Loan asset owed to suppliers but not recoverable through liquidation:
 
-$$\text{bad debt} = \max\bigl(0, \text{debt repaid} - \text{realised value of seized collateral}\bigr)$$
+$$\text{bad debt} = \max\left(0, \text{debt repaid} - \text{realised value of seized collateral}\right)$$
 
 Bad debt is ultimately absorbed by the supplier pool (through a
 proportional reduction of supplier balances).
@@ -333,19 +333,19 @@ A stress scenario is a quadruple $(\delta, T, h, \rho)$:
 ### Time and block conventions
 
 - Block time on Ethereum (post-merge): 12 seconds, denoted
- $\Delta_{\text{block}} = 12$.
+  $\Delta_{\text{block}} = 12$.
 - One year is $365 \times 24 \times 3600 = 31{,}536{,}000$ seconds.
 - All timestamps are reported in Coordinated Universal Time (UTC).
 
 ### Numerical conventions
 
 - All rates are continuously compounded annual rates (annualised in base
- $e$); a value of $0.04$ means 4% annualised.
+  $e$); a value of $0.04$ means 4% annualised.
 - All prices are floating-point numbers; we do not replicate the
- contract's fixed-point WAD arithmetic except where explicitly stated,
- since stress-test outcomes are insensitive to the eighteenth decimal.
+  contract's fixed-point WAD arithmetic except where explicitly stated,
+  since stress-test outcomes are insensitive to the eighteenth decimal.
 - A small numerical tolerance $\varepsilon = 10^{-9}$ is used to avoid
- division-by-zero artefacts.
+  division-by-zero artefacts.
 
 ---
 

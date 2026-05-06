@@ -36,15 +36,15 @@ exchange — there exists a stress scenario $\sigma$ such that, at
 horizon $h$ blocks, the market enters one of two distress states:
 
 - **Illiquid state**: incapacity to satisfy supplier withdrawal demand
- at block $t + h$, formally:
- $W_{\text{requested}}(t, t+h) > L(t+h)$
- where $W_{\text{requested}}$ is cumulative requested withdrawals and
- $L = S - B$ is the available liquidity.
+  at block $t + h$, formally:
+  $W_{\text{requested}}(t, t+h) > L(t+h)$
+  where $W_{\text{requested}}$ is cumulative requested withdrawals and
+  $L = S - B$ is the available liquidity.
 
 - **Insolvent state**: realised bad debt $B_{\text{bad}}(t+h) > 0$,
- meaning that liquidations failed to fully cover defaulted positions
- due to collateral price gaps, oracle deviation, or liquidator
- decentralised-exchange slippage.
+  meaning that liquidations failed to fully cover defaulted positions
+  due to collateral price gaps, oracle deviation, or liquidator
+  decentralised-exchange slippage.
 
 The probability of these states is bounded **empirically** from a
 12-month rolling historical window, calibrated on observed stress
@@ -56,15 +56,15 @@ of March 2023, and the staked-Ether discount episode of May 2022).
 For a MetaMorpho vault $V$ with curator $c$ at block $t$, define the
 **risk-discipline gap**:
 
-$$\Delta(V, t) = \Bigl\| X_{\text{observed}}(V, t) - X^\star(V, t) \Bigr\|_2$$
+$$\Delta(V, t) = \left\| X_{\text{observed}}(V, t) - X^\star(V, t) \right\|_2$$
 
 where:
 - $X_{\text{observed}}$ is the curator's actual allocation vector
- across approved Morpho Blue lending markets, indexed by market
- identifier;
+  across approved Morpho Blue lending markets, indexed by market
+  identifier;
 - $X^\star$ is the theoretical allocation that minimises 30-day
- liquidity Value-at-Risk under the stress framework defined in this
- document;
+  liquidity Value-at-Risk under the stress framework defined in this
+  document;
 - $\|\cdot\|_2$ denotes the Euclidean norm.
 
 To our knowledge, $\Delta$ is the first quantitative measure of curator
@@ -76,22 +76,22 @@ compute curator counterfactuals.
 ### 1.3 Why this matters
 
 - **Academic gap**: Chiu, Ozdenoren, Yuan and Zhang (Bank for
- International Settlements Working Paper 1062, 2023) show that
- decentralised-finance lending pools are inherently fragile, but
- published work focuses on monolithic pools (Aave, Compound). Morpho
- Blue's *isolated-market design* — in which each market is an
- immutable tuple sharing no liquidity with others — has no comparable
- formal stress-testing framework.
+  International Settlements Working Paper 1062, 2023) show that
+  decentralised-finance lending pools are inherently fragile, but
+  published work focuses on monolithic pools (Aave, Compound). Morpho
+  Blue's *isolated-market design* — in which each market is an
+  immutable tuple sharing no liquidity with others — has no comparable
+  formal stress-testing framework.
 
 - **Industry gap**: Risk reports from Gauntlet, Block Analitica and
- LlamaRisk transpose Basel concepts informally. We provide an
- **explicit Basel III mapping** with stated limitations.
+  LlamaRisk transpose Basel concepts informally. We provide an
+  **explicit Basel III mapping** with stated limitations.
 
 - **Timing**: The KelpDAO event of April 2026 generated approximately
- 196 million U.S. dollars in bad debt on Aave and approximately 8 billion U.S. dollars of
- capital migration to Morpho. This is the largest stress event of
- the present cycle and provides a calibration anchor that did not
- exist before.
+  196 million U.S. dollars in bad debt on Aave and approximately 8 billion U.S. dollars of
+  capital migration to Morpho. This is the largest stress event of
+  the present cycle and provides a calibration anchor that did not
+  exist before.
 
 ---
 
@@ -110,10 +110,10 @@ in this document for brevity from now on) are defined by the Basel
 Committee in three tiers:
 
 - **Level 1**: cash, central-bank reserves, and top-rated sovereign
- debt — haircut 0% (the haircut being the fraction of value assumed
- lost on monetisation under stress).
+  debt — haircut 0% (the haircut being the fraction of value assumed
+  lost on monetisation under stress).
 - **Level 2A**: highly liquid corporate or covered bonds — haircut
- 15%.
+  15%.
 - **Level 2B**: lower-rated corporate or equity — haircut 25 to 50%.
 
 The **net cash outflows** (the denominator) are computed under a
@@ -124,22 +124,23 @@ financial corporates).
 
 We construct an on-chain analogue of the Liquidity Coverage Ratio for
 a Morpho Blue lending market $M$ at block $t$, denoted
-$\mathrm{LCR}_{\mathrm{onchain}}(M, t, \sigma, h)$ where $\sigma$ is
-the stress scenario and $h$ is the horizon in blocks:
+$\mathrm{LCR_{oc}}(M, t, \sigma, h)$ — where the subscript "oc" stands
+for "on-chain" — and where $\sigma$ is the stress scenario and $h$ is
+the horizon in blocks:
 
-$$\mathrm{LCR}_{\mathrm{onchain}}(M, t, \sigma, h) = \frac{L_1(M, t) \,+\, L_{2A,\mathrm{net}}(M, t, \sigma)}{O_\sigma(M, t, h) - \min\bigl(I_\sigma(M, t, h), 0.75 \cdot O_\sigma\bigr)}$$
+$$\mathrm{LCR_{oc}}(M, t, \sigma, h) = \frac{L_1(M, t) \,+\, L_{2A,\mathrm{net}}(M, t, \sigma)}{O_\sigma(M, t, h) - \min\left(I_\sigma(M, t, h), 0.75 \cdot O_\sigma\right)}$$
 
 where:
 - $L_1(M, t) = S_t - B_t$ is the on-chain analogue of HQLA Level 1
- (instant liquidity, no haircut);
+  (instant liquidity, no haircut);
 - $L_{2A,\mathrm{net}}(M, t, \sigma)$ is the per-position liquidation
- recovery under stress (defined in §2.2 below);
+  recovery under stress (defined in §2.2 below);
 - $O_\sigma(M, t, h) = \alpha \cdot S_t$ is the stress outflow, with
- $\alpha$ event-calibrated (defined in §2.4 below);
+  $\alpha$ event-calibrated (defined in §2.4 below);
 - $I_\sigma(M, t, h)$ is the inflow from forced repayments through
- liquidations during the stress window;
+  liquidations during the stress window;
 - The cap at 75% reproduces BCBS 238 Annex 4 §170, which limits the
- offset between secured-lending inflows and outflows.
+  offset between secured-lending inflows and outflows.
 
 The mapping from Basel definitions to Morpho Blue analogues is:
 
@@ -163,22 +164,22 @@ liquidatable through the protocol's liquidation procedure. The
 recovery from a single position $i$ is:
 
 1. The liquidator seizes collateral up to the *liquidation incentive
- factor* $\phi(\Lambda)$ above debt:
- $\mathrm{seized}_i = \min\bigl(b_i \cdot \phi(\Lambda) / P, c_i\bigr)$
+  factor* $\phi(\Lambda)$ above debt:
+  $\mathrm{seized}_i = \min\left(b_i \cdot \phi(\Lambda) / P, c_i\right)$
 2. The liquidator sells the seized collateral on a decentralised
- exchange at the realised price $P \cdot (1 - \pi(\mathrm{seized}_i))$;
+  exchange at the realised price $P \cdot (1 - \pi(\mathrm{seized}_i))$;
 3. The supplier pool receives loan-asset proceeds, capped at the
- position's debt $b_i$ (any surplus accrues to the borrower);
+  position's debt $b_i$ (any surplus accrues to the borrower);
 4. If proceeds fall below the debt, the shortfall is *bad debt*,
- borne by the supplier pool.
+  borne by the supplier pool.
 
 Formally, the recovery from position $i$ is
 
-$$r_i = \min\Bigl(\mathrm{seized}_i \cdot P \cdot (1 - \pi(\mathrm{seized}_i)), b_i\Bigr) - \mathrm{BD}_i$$
+$$r_i = \min\left(\mathrm{seized}_i \cdot P \cdot (1 - \pi(\mathrm{seized}_i)), b_i\right) - \mathrm{BD}_i$$
 
 where the bad debt for position $i$ is
 
-$$\mathrm{BD}_i = \max\Bigl(0, b_i - \mathrm{seized}_i \cdot P \cdot (1 - \pi(\mathrm{seized}_i))\Bigr).$$
+$$\mathrm{BD}_i = \max\left(0, b_i - \mathrm{seized}_i \cdot P \cdot (1 - \pi(\mathrm{seized}_i))\right).$$
 
 The aggregate Level 2A is
 
@@ -187,7 +188,7 @@ $$L_{2A,\mathrm{net}}(M, t, \sigma) = \sum_i r_i.$$
 The **liquidation incentive factor** $\phi$ is given by Morpho Blue's
 formula
 
-$$\phi(\Lambda) = \min\Bigl(1.15, \frac{1}{0.3 \cdot \Lambda + 0.7}\Bigr),$$
+$$\phi(\Lambda) = \min\left(1.15, \frac{1}{0.3 \cdot \Lambda + 0.7}\right),$$
 
 capping the bonus at 15% above debt for low values of $\Lambda$. For
 $\Lambda = 0.86$ (typical for major asset–stablecoin pairs), $\phi$
@@ -199,26 +200,26 @@ The mapping in §2.1 is non-trivial; several choices are defensible
 but not unique. We list the tensions explicitly:
 
 1. **Time-unit mismatch**: the Basel Committee reasons in months;
- on-chain we measure in blocks (12 seconds on Ethereum). The Basel
- parameter $h = 30$ days is not natural; we expose $h$ as a free
- parameter and report results at three horizons: 24 hours, 7 days,
- 30 days.
+  on-chain we measure in blocks (12 seconds on Ethereum). The Basel
+  parameter $h = 30$ days is not natural; we expose $h$ as a free
+  parameter and report results at three horizons: 24 hours, 7 days,
+  30 days.
 
 2. **No equivalent of "stable funding"**: in decentralised-finance
- lending, all suppliers are 100% callable by construction. The
- Basel concept of "operational deposits" has no on-chain analogue.
- We therefore expect that *all decentralised-finance lending pools
- have a structurally low Net Stable Funding Ratio* by Basel
- standards (see §2.5 below). The Liquidity Coverage Ratio is most
- informative *relative to itself* across markets and over time, not
- in absolute terms.
+  lending, all suppliers are 100% callable by construction. The
+  Basel concept of "operational deposits" has no on-chain analogue.
+  We therefore expect that *all decentralised-finance lending pools
+  have a structurally low Net Stable Funding Ratio* by Basel
+  standards (see §2.5 below). The Liquidity Coverage Ratio is most
+  informative *relative to itself* across markets and over time, not
+  in absolute terms.
 
 3. **Oracle as exogenous**: we treat oracle prices as exogenous
- inputs in the baseline. In reality, oracle behaviour
- (time-weighted-average-price smoothing, deviation thresholds,
- fallback logic) is endogenous to the stress scenario. This is a
- deliberate baseline simplification — modelled as a sensitivity
- analysis, not a structural feature.
+  inputs in the baseline. In reality, oracle behaviour
+  (time-weighted-average-price smoothing, deviation thresholds,
+  fallback logic) is endogenous to the stress scenario. This is a
+  deliberate baseline simplification — modelled as a sensitivity
+  analysis, not a structural feature.
 
 ### 2.4 Event-calibrated outflow fraction
 
@@ -226,12 +227,12 @@ The outflow fraction $\alpha$ in §2.1 is *not* a Basel-style
 universal constant. It is derived from each market's own price-drawdown
 distribution as a proxy for withdrawal velocity:
 
-$$\alpha = \min\Bigl(0.60, \max\bigl(0.05, 1.5 \cdot q_{0.99}(\mathrm{drawdowns}) + 0.30 \cdot \mathbf{1}\{q_{0.99}(\mathrm{drawdowns}) > 0.05\}\bigr)\Bigr)$$
+$$\alpha = \min\left(0.60, \max\left(0.05, 1.5 \cdot q_{0.99}(\mathrm{drawdowns}) + 0.30 \cdot \mathbf{1}\{q_{0.99}(\mathrm{drawdowns}) > 0.05\}\right)\right)$$
 
 where:
 - $q_{0.99}(\mathrm{drawdowns})$ is the 99th-percentile empirical
- quantile of 24-hour collateral price drawdowns over the past
- rolling year, expressed as a fraction;
+  quantile of 24-hour collateral price drawdowns over the past
+  rolling year, expressed as a fraction;
 - $\mathbf{1}\{\cdot\}$ is the indicator function.
 
 The constant $1.5$ and the additive 30% (the *whale-concentration
@@ -247,11 +248,11 @@ $$\text{Net Stable Funding Ratio} = \frac{\text{Available Stable Funding}}{\text
 For decentralised-finance lending, a brute-force application yields:
 
 - **Available Stable Funding weight**: suppliers are instantly
- callable, so the Available Stable Funding factor is approximately
- 0%;
+  callable, so the Available Stable Funding factor is approximately
+  0%;
 - **Required Stable Funding weight**: borrows have no contractual
- maturity (perpetual), so the Required Stable Funding factor is
- approximately 100%.
+  maturity (perpetual), so the Required Stable Funding factor is
+  approximately 100%.
 
 The Net Stable Funding Ratio is therefore approximately 0 for any
 decentralised-finance lending pool. This is a **structural insight
@@ -295,11 +296,11 @@ one stress event observable in the historical window.
 Twelve rolling months: May 2025 through May 2026. This window contains:
 
 - The KelpDAO collateral exploit and ensuing migration of Total Value
- Locked (April 2026), used as the **primary calibration anchor**;
+  Locked (April 2026), used as the **primary calibration anchor**;
 - A series of oracle deviations and minor depegs (continuous, low
- intensity);
+  intensity);
 - Sector-wide macro stress around the third quarter of 2025 (to
- verify at data-acquisition time).
+  verify at data-acquisition time).
 
 ### 3.3 Stress horizons
 
@@ -326,68 +327,68 @@ Summary:
 
 For each (market, scenario, horizon) tuple:
 
-- $\mathrm{LCR}_{\mathrm{onchain}}$ — the primary metric, reported as
- a time series and worst-case;
+- $\mathrm{LCR_{oc}}$ — the primary metric, reported as
+  a time series and worst-case;
 - *Time-to-illiquid* — first block at which available liquidity is
- exhausted under the scenario;
+  exhausted under the scenario;
 - *Expected bad debt* — sum of unrecovered debt at end of horizon;
 - *Slippage-adjusted shortfall* — gap between oracle-priced collateral
- and decentralised-exchange-realised recovery;
+  and decentralised-exchange-realised recovery;
 - *Withdrawal survival curve* — empirical $S(t \mid \sigma)$ for the
- secondary hypothesis.
+  secondary hypothesis.
 
 ---
 
 ## 4. Limitations (explicit and exhaustive)
 
 1. **Endogeneity ignored at baseline**: prices, withdrawals, and
- liquidations are treated as separable processes. In reality,
- large liquidations move decentralised-exchange prices, which
- trigger more liquidations (a feedback loop). Capponi and Jia
- (2021) and follow-up work formalise this. Modelling it requires
- agent-based simulation or a fixed-point solver — out of scope at
- the baseline; flagged for a future version.
+  liquidations are treated as separable processes. In reality,
+  large liquidations move decentralised-exchange prices, which
+  trigger more liquidations (a feedback loop). Capponi and Jia
+  (2021) and follow-up work formalise this. Modelling it requires
+  agent-based simulation or a fixed-point solver — out of scope at
+  the baseline; flagged for a future version.
 
 2. **Oracle as exogenous input**: time-weighted-average-price
- behaviour, fallback paths, and oracle outages are not endogenously
- modelled. Sensitivity analysis only.
+  behaviour, fallback paths, and oracle outages are not endogenously
+  modelled. Sensitivity analysis only.
 
 3. **Maximal extractable value and liquidator competition**:
- liquidations are assumed perfect (no liquidator stuck in mempool,
- no priority-gas-auction failure). This biases bad-debt estimates
- downward at the baseline.
+  liquidations are assumed perfect (no liquidator stuck in mempool,
+  no priority-gas-auction failure). This biases bad-debt estimates
+  downward at the baseline.
 
 4. **Cross-market contagion**: by Morpho Blue design, lending markets
- are isolated, so there is no cross-market contagion at the
- protocol layer. *However*, MetaMorpho vaults link markets
- economically through curator allocation. Vault-level analysis (the
- secondary hypothesis) introduces this dimension.
+  are isolated, so there is no cross-market contagion at the
+  protocol layer. *However*, MetaMorpho vaults link markets
+  economically through curator allocation. Vault-level analysis (the
+  secondary hypothesis) introduces this dimension.
 
 5. **Calibration on a short window**: 12 months of data on a
- fast-evolving protocol means small-sample bias. Confidence
- intervals are reported but should be taken as indicative.
+  fast-evolving protocol means small-sample bias. Confidence
+  intervals are reported but should be taken as indicative.
 
 6. **Monte Carlo as retained extension**: scenarios are designed in
- dual mode — point (deterministic shocks at empirical quantiles)
- and Monte Carlo (sampled from empirical distributions, with $N$
- paths and confidence intervals). Monte Carlo is *not* deferred
- future work: it is part of the baseline specification (see
- [`SCENARIOS.md`](./SCENARIOS.md) §5). The honest caveat is
- statistical: a 12-month sample produces wide confidence intervals
- on tail quantiles. The 99th-percentile is estimated from
- approximately three disjoint or 88 overlapping observations.
- Block bootstrap and Pareto-tail sensitivity tests are used to
- bound this uncertainty, but tail estimation on short
- decentralised-finance history remains the dominant source of
- model risk.
+  dual mode — point (deterministic shocks at empirical quantiles)
+  and Monte Carlo (sampled from empirical distributions, with $N$
+  paths and confidence intervals). Monte Carlo is *not* deferred
+  future work: it is part of the baseline specification (see
+  [`SCENARIOS.md`](./SCENARIOS.md) §5). The honest caveat is
+  statistical: a 12-month sample produces wide confidence intervals
+  on tail quantiles. The 99th-percentile is estimated from
+  approximately three disjoint or 88 overlapping observations.
+  Block bootstrap and Pareto-tail sensitivity tests are used to
+  bound this uncertainty, but tail estimation on short
+  decentralised-finance history remains the dominant source of
+  model risk.
 
 7. **Solidity behaviour not simulated end-to-end**: we model the
- economic state, not gas or mempool dynamics. A full Foundry
- fork-test would close this gap.
+  economic state, not gas or mempool dynamics. A full Foundry
+  fork-test would close this gap.
 
 8. **Smart-contract risk excluded**: the framework assumes Morpho
- Blue contracts execute correctly. Contract-level risk (bugs,
- governance attacks) is out of scope.
+  Blue contracts execute correctly. Contract-level risk (bugs,
+  governance attacks) is out of scope.
 
 ---
 
@@ -397,16 +398,16 @@ See [`references.md`](./references.md) for the full bibliography. Core
 anchors:
 
 - **Basel framework**: BCBS 238 (Liquidity Coverage Ratio, 2013); BCBS
- 295 (Net Stable Funding Ratio, 2014).
+  295 (Net Stable Funding Ratio, 2014).
 - **Decentralised-finance lending theory**: Gudgeon, Werner, Perez and
- Knottenbelt (2020); Capponi and Jia (2021, 2023); Chiu, Ozdenoren,
- Yuan and Zhang (Bank for International Settlements Working Paper
- 1062, 2023).
+  Knottenbelt (2020); Capponi and Jia (2021, 2023); Chiu, Ozdenoren,
+  Yuan and Zhang (Bank for International Settlements Working Paper
+  1062, 2023).
 - **Protocol specification**: Morpho Labs, *Morpho Blue Whitepaper*
- and *Morpho Blue Yellow Paper*.
+  and *Morpho Blue Yellow Paper*.
 - **Industry benchmarks**: Steakhouse Financial public Maker
- analyses; Block Analitica risk reports; LlamaRisk Aave and Curve
- reports.
+  analyses; Block Analitica risk reports; LlamaRisk Aave and Curve
+  reports.
 
 ---
 

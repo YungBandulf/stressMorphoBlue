@@ -24,7 +24,7 @@ within the same section.
 For a Morpho Blue lending market $M$ at block $t$, the *state vector*
 is the tuple
 
-$$x(M, t) = \bigl( S_t, B_t, L_t, U_t, C_t, P_t, \{(b_i, c_i)\}_i, \{s_j\}_j \bigr).$$
+$$x(M, t) = \left( S_t, B_t, L_t, U_t, C_t, P_t, \{(b_i, c_i)\}_i, \{s_j\}_j \right).$$
 
 The components are defined in the table below. All quantities are
 denominated in their natural units; conversions to U.S.-dollar
@@ -46,21 +46,21 @@ notional are computed only at the report stage.
 The following are fixed at market creation and cannot be changed:
 
 - $\Lambda \in [0, 1]$: the *liquidation loan-to-value threshold* (see
- [`GLOSSARY.md`](./GLOSSARY.md)). A position is liquidatable when its
- loan-to-value exceeds $\Lambda$.
+  [`GLOSSARY.md`](./GLOSSARY.md)). A position is liquidatable when its
+  loan-to-value exceeds $\Lambda$.
 - The *interest rate model*, a function $U \mapsto (r_{\text{borrow}}, r_{\text{supply}})$ mapping utilisation to a borrow rate and a
- supply rate.
+  supply rate.
 - The *oracle source*: one of {Chainlink, Pyth, Redstone,
- Time-Weighted Average Price from Uniswap V3, composite} (see
- §3.S3 below for the implications of each choice).
+  Time-Weighted Average Price from Uniswap V3, composite} (see
+  §3.S3 below for the implications of each choice).
 
 ### 1.3 Auxiliary functions
 
 - The *slippage curve* $\pi(C, V)$: the relative shortfall (in $[0, 1]$) between the oracle-quoted price and the realised execution
- price for selling $V$ units of collateral $C$ on a decentralised
- exchange. Calibrated empirically (see §4 below).
+  price for selling $V$ units of collateral $C$ on a decentralised
+  exchange. Calibrated empirically (see §4 below).
 - The *per-position loan-to-value* (already defined in
- [`GLOSSARY.md`](./GLOSSARY.md)):
+  [`GLOSSARY.md`](./GLOSSARY.md)):
 
  $$\text{LTV}_i(t) = \frac{b_i}{c_i \cdot P_t}.$$
 
@@ -80,13 +80,13 @@ $$\sigma = (\delta, T, h, \rho)$$
 where:
 
 - $\delta : \mathcal{X} \to \mathcal{X}$ is the *shock function*
- applied to the state at block $t$ (here $\mathcal{X}$ denotes the
- state space, the set of all possible state vectors);
+  applied to the state at block $t$ (here $\mathcal{X}$ denotes the
+  state space, the set of all possible state vectors);
 - $T \in \mathbb{N}$ is the *shock duration* in blocks;
 - $h \in \mathbb{N}$ is the *observation horizon* in blocks (with
- $h \geq T$);
+  $h \geq T$);
 - $\rho$ is the *behavioural rule* governing the evolution of the
- state from block $t$ to block $t + h$.
+  state from block $t$ to block $t + h$.
 
 The output of applying $\sigma$ to an initial state $x(M, t)$ is a
 *stress trajectory*
@@ -102,12 +102,12 @@ or the realised bad debt.
 For each scenario we define both:
 
 - **Point mode (baseline)**: the shock function $\delta$ is
- *deterministic*, calibrated to an empirical quantile of historical
- observations (typically the 99th percentile);
+  *deterministic*, calibrated to an empirical quantile of historical
+  observations (typically the 99th percentile);
 - **Monte Carlo mode**: the shock function $\delta$ is sampled from
- $F_\delta$, the *empirical cumulative distribution function* of
- historical observations. We simulate $N$ paths and report metrics as
- the tuple (mean, 5th percentile, 95th percentile, 99th percentile).
+  $F_\delta$, the *empirical cumulative distribution function* of
+  historical observations. We simulate $N$ paths and report metrics as
+  the tuple (mean, 5th percentile, 95th percentile, 99th percentile).
 
 This dual structure means Monte Carlo support is **architectural**,
 not an afterthought. Any implementation that closes the door on Monte
@@ -116,12 +116,12 @@ Carlo violates the specification.
 ### 2.3 Behavioural regimes
 
 - **Exogenous regime (baseline)**: liquidator selling on the
- decentralised exchange does not move the oracle price; it only
- affects collateral recovery.
+  decentralised exchange does not move the oracle price; it only
+  affects collateral recovery.
 - **Endogenous regime**: liquidator selling on the decentralised
- exchange moves the exchange price; if the market's oracle is
- decentralised-exchange-derived (such as the Time-Weighted Average
- Price from Uniswap V3), the feedback activates.
+  exchange moves the exchange price; if the market's oracle is
+  decentralised-exchange-derived (such as the Time-Weighted Average
+  Price from Uniswap V3), the feedback activates.
 
 The choice of regime is **per-market**, driven by the oracle
 configuration. Markets using Chainlink with off-chain aggregation
@@ -137,7 +137,7 @@ Average Price from Uniswap V3 default to the endogenous regime.
 **Description**: a fraction $\alpha$ of suppliers attempt to withdraw
 their balance over duration $T$.
 
-**Shock function $\delta_{\mathrm{S1}}$**:
+**Shock function $\delta_{S1}$**:
 
 $$W_{\text{requested}}(\tau) = \alpha \cdot S_t \cdot w(\tau), \qquad \tau \in [t, t + T]$$
 
@@ -147,19 +147,19 @@ $w(\tau) = 1/T$; sensitivity test: front-loaded exponential).
 **Calibration of $\alpha$**:
 
 - *Point mode*:
- $\alpha = q_{0.99}\bigl(\sum_j \Delta s_j^- / S\bigr)$
- over rolling 24-hour windows, per market, on the 12-month historical
- sample. Here $\Delta s_j^-$ denotes the negative changes in supplier
- $j$'s balance (i.e. withdrawals).
+  $\alpha = q_{0.99}\left(\sum_j \Delta s_j^- / S\right)$
+  over rolling 24-hour windows, per market, on the 12-month historical
+  sample. Here $\Delta s_j^-$ denotes the negative changes in supplier
+  $j$'s balance (i.e. withdrawals).
 - *Monte Carlo mode*: $\alpha \sim F_\alpha^{\text{empirical}}$, the
- empirical cumulative distribution function of the same series.
+  empirical cumulative distribution function of the same series.
 
-**Behavioural rule $\rho_{\mathrm{S1}}$**:
+**Behavioural rule $\rho_{S1}$**:
 
 A withdrawal request at block $\tau$ is honoured if and only if
 $L_\tau \geq W_{\text{requested}}(\tau)$. Otherwise:
 
-- The honoured portion equals $\min\bigl(W_{\text{requested}}(\tau), L_\tau\bigr)$;
+- The honoured portion equals $\min\left(W_{\text{requested}}(\tau), L_\tau\right)$;
 - The unhonoured portion accumulates in a *queued register*;
 - The supplier is recorded as *queued* for accounting purposes.
 
@@ -172,7 +172,7 @@ elasticity. Default at baseline: no response (conservative).
 
 - *Time-to-illiquid*: $\min\{\tau : L_\tau = 0 \wedge \mathrm{queued}_\tau > 0\}$, or infinity if never;
 - *Total queued at horizon*: cumulative unhonoured withdrawals at
- block $t + h$;
+  block $t + h$;
 - *Stuck ratio*: $\text{total queued} / (\alpha \cdot S_t)$.
 
 ---
@@ -182,7 +182,7 @@ elasticity. Default at baseline: no response (conservative).
 **Description**: borrow demand spikes; new borrowers enter the market
 over $T$ blocks.
 
-**Shock function $\delta_{\mathrm{S2}}$**:
+**Shock function $\delta_{S2}$**:
 
 $$\Delta B_{\text{requested}}(\tau) = \beta \cdot S_t \cdot w(\tau), \qquad \tau \in [t, t + T]$$
 
@@ -192,20 +192,20 @@ this tightens the position-health distribution).
 **Calibration of $\beta$**:
 
 - *Point mode*: $\beta = q_{0.99}(\Delta B^+ / S)$ over rolling
- 24-hour windows.
+  24-hour windows.
 - *Monte Carlo mode*: $\beta \sim F_\beta^{\text{empirical}}$.
 
-**Behavioural rule $\rho_{\mathrm{S2}}$**:
+**Behavioural rule $\rho_{S2}$**:
 
 - New borrows fill until $U = 1$ (full utilisation); excess demand is
- unsatisfied.
+  unsatisfied.
 - The interest rate model raises $r_{\text{borrow}}$. Supplier inflow
- is modelled as $\Delta S^+ = \eta \cdot \max(0, r_{\text{borrow}} - r_{\text{benchmark}})$ if
- `behavior = 'rate_response'`, else null. Here $\eta$ is the
- *supplier-rate elasticity*, a calibrated parameter.
+  is modelled as $\Delta S^+ = \eta \cdot \max(0, r_{\text{borrow}} - r_{\text{benchmark}})$ if
+  `behavior = 'rate_response'`, else null. Here $\eta$ is the
+  *supplier-rate elasticity*, a calibrated parameter.
 - Position-level: new borrowers' loan-to-value approaches $\Lambda$,
- so a subsequent S3-style oracle move would liquidate them — an
- explicit linkage to S4.
+  so a subsequent S3-style oracle move would liquidate them — an
+  explicit linkage to S4.
 
 **Output metrics**:
 
@@ -221,19 +221,19 @@ this tightens the position-health distribution).
 **Description**: the collateral price drops by $\Delta$ over a window
 $\Delta t$; the oracle reports a possibly-lagged price.
 
-**Shock function $\delta_{\mathrm{S3}}$**: two coupled price paths are
+**Shock function $\delta_{S3}$**: two coupled price paths are
 generated.
 
 - *Market price path*:
 
- $$P_\tau^{\text{market}} = P_t \cdot \bigl(1 - \Delta \cdot g(\tau)\bigr), \qquad \tau \in [t, t + \Delta t]$$
+ $$P_\tau^{\text{market}} = P_t \cdot \left(1 - \Delta \cdot g(\tau)\right), \qquad \tau \in [t, t + \Delta t]$$
 
  where $g(\tau)$ is a *drawdown shape* (linear by default, instant
  step for shock test).
 
 - *Oracle price path*:
 
- $$P_\tau^{\text{oracle}} = \mathrm{TWAP}_\lambda\bigl(P_\cdot^{\text{market}}, \tau\bigr)$$
+ $$P_\tau^{\text{oracle}} = \mathrm{TWAP}_\lambda\left(P_\cdot^{\text{market}}, \tau\right)$$
 
  where $\mathrm{TWAP}_\lambda$ denotes the geometric Time-Weighted
  Average Price over a window of $\lambda$ blocks (the oracle's
@@ -242,29 +242,29 @@ generated.
 **Calibration**:
 
 - $\Delta$ in *point mode*: $\Delta = q_{0.99}(\text{drawdown over }\Delta t)$
- from the oracle-or-market historical price series of the
- collateral asset;
+  from the oracle-or-market historical price series of the
+  collateral asset;
 - $\Delta$ in *Monte Carlo mode*: $\Delta \sim F_\Delta^{\text{empirical}}$,
- fitted on the rolling drawdown distribution;
+  fitted on the rolling drawdown distribution;
 - Three values of $\Delta t$ in parallel: 1 hour, 24 hours, 7 days;
 - $\lambda$ deterministic, read from the oracle's on-chain
- configuration.
+  configuration.
 
-**Behavioural rule $\rho_{\mathrm{S3}}$**:
+**Behavioural rule $\rho_{S3}$**:
 
 At each block $\tau$:
 
 1. Update the per-position loan-to-value:
- $\text{LTV}_i(\tau) = b_i / (c_i \cdot P_\tau^{\text{oracle}})$;
+  $\text{LTV}_i(\tau) = b_i / (c_i \cdot P_\tau^{\text{oracle}})$;
 2. Identify the set of liquidatable positions
- $\mathcal{L}_\tau = \{i : \text{LTV}_i(\tau) > \Lambda\}$;
+  $\mathcal{L}_\tau = \{i : \text{LTV}_i(\tau) > \Lambda\}$;
 3. Liquidate positions in $\mathcal{L}_\tau$ with realistic latency
- $\delta_{\text{liq}}$ (default: 2 blocks);
+  $\delta_{\text{liq}}$ (default: 2 blocks);
 4. Recovery accounting per liquidation $i$:
 
- $$R_i = c_i \cdot P_\tau^{\text{market}} \cdot \bigl(1 - \pi(C, c_i)\bigr)$$
+ $$R_i = c_i \cdot P_\tau^{\text{market}} \cdot \left(1 - \pi(C, c_i)\right)$$
 
- $$\text{shortfall}_i = \max\bigl(0, b_i - R_i\bigr).$$
+ $$\text{shortfall}_i = \max\left(0, b_i - R_i\right).$$
 
  Liquidation pricing uses the **market price**, not the oracle
  price, and slippage is computed via $\pi$.
@@ -274,7 +274,7 @@ At each block $\tau$:
 - *Number liquidated*: count of positions liquidated at horizon;
 - *Bad debt*: $\sum_i \text{shortfall}_i$;
 - *Slippage shortfall*: gap between oracle-priced and realised
- recovery, $\sum_i \max(0, c_i \cdot P_\tau^{\text{oracle}} - R_i)$.
+  recovery, $\sum_i \max(0, c_i \cdot P_\tau^{\text{oracle}} - R_i)$.
 
 ---
 
@@ -284,21 +284,21 @@ At each block $\tau$:
 decentralised-exchange slippage feedback. Unlike S3, the *endogenous
 regime* is the **default** — cascade is the point of the scenario.
 
-**Shock function $\delta_{\mathrm{S4}}$**: joint shock $(\Delta, \Delta t)$ calibrated at the 95th percentile *jointly*. The 99th-percentile
+**Shock function $\delta_{S4}$**: joint shock $(\Delta, \Delta t)$ calibrated at the 95th percentile *jointly*. The 99th-percentile
 joint is unreliable on a 12-month sample.
 
-**Behavioural rule $\rho_{\mathrm{S4}}$**:
+**Behavioural rule $\rho_{S4}$**:
 
 Endogenous feedback — liquidator selling moves the
 decentralised-exchange price; if the oracle is
 decentralised-exchange-derived, the oracle follows. Update equation:
 
-$$P_{\tau+1}^{\text{market}} = P_\tau^{\text{market}} \cdot \bigl(1 - \pi(C, V_{\text{liquidated}}(\tau))\bigr)$$
+$$P_{\tau+1}^{\text{market}} = P_\tau^{\text{market}} \cdot \left(1 - \pi(C, V_{\text{liquidated}}(\tau))\right)$$
 
 where $V_{\text{liquidated}}(\tau)$ is the volume sold by liquidators
 in block $\tau$. If the oracle is Time-Weighted-Average-Price-based:
 
-$$P_{\tau+1}^{\text{oracle}} = \mathrm{TWAP}_\lambda\bigl(P_\cdot^{\text{market}}, \tau + 1\bigr).$$
+$$P_{\tau+1}^{\text{oracle}} = \mathrm{TWAP}_\lambda\left(P_\cdot^{\text{market}}, \tau + 1\right).$$
 
 Otherwise (Chainlink or other off-chain oracle), the oracle path
 remains as in S3 (no feedback).
@@ -307,12 +307,12 @@ remains as in S3 (no feedback).
 
 1. Accrue interest;
 2. Update the oracle price (with potential feedback from the previous
- block);
+  block);
 3. Identify liquidatable positions;
 4. Execute liquidations (computing slippage on the aggregate volume
- sold this block);
+  sold this block);
 5. Update the decentralised-exchange price reflecting cumulative
- selling;
+  selling;
 6. Move to the next block and return to step 1.
 
 This sequential structure prevents within-block circularity. A more
@@ -321,13 +321,13 @@ sophisticated model would solve a fixed point per block.
 **Output metrics**:
 
 - *Total bad debt* (point mode: scalar; Monte Carlo mode:
- distribution);
+  distribution);
 - *Cascade depth*: $\max_\tau |\mathcal{L}_\tau|$, the maximum number
- of simultaneous liquidations in any single block;
+  of simultaneous liquidations in any single block;
 - *Realised slippage*: average and worst-block $\pi$ realised;
 - *Feedback amplification*: the ratio of (endogenous cascade bad debt)
- to (exogenous-counterfactual bad debt) — measures the cost of the
- feedback.
+  to (exogenous-counterfactual bad debt) — measures the cost of the
+  feedback.
 
 ---
 
@@ -336,21 +336,21 @@ sophisticated model would solve a fixed point per block.
 **Description**: counterfactual replay of the April 2026 KelpDAO event
 applied to current Morpho Blue state.
 
-**Shock function $\delta_{\mathrm{S5}}$**: reconstruct the historical
+**Shock function $\delta_{S5}$**: reconstruct the historical
 price-and-event path from on-chain data covering 19 April through 22
 April 2026. Apply this path as $P_\tau^{\text{market}}$ for the
 affected collateral types. For unaffected collateral types, no shock
 is applied.
 
-**Behavioural rule $\rho_{\mathrm{S5}}$**: as in S4 (endogenous
+**Behavioural rule $\rho_{S5}$**: as in S4 (endogenous
 cascade), with the historical path replacing the synthetic drawdown.
 
 **Output metrics**:
 
 - *Counterfactual bad debt* per market under the worst-event-of-2026
- conditions;
+  conditions;
 - *Comparison ratio*: bad debt under KelpDAO replay divided by bad
- debt under S4 at the 95th-percentile joint shock.
+  debt under S4 at the 95th-percentile joint shock.
 
 This scenario is **the validation anchor** of the framework: a
 credible model should flag fragility in markets that, if they had
@@ -384,11 +384,11 @@ for assets with limited history (such as sUSDe and cbBTC). This is an
 unavoidable baseline weakness, addressed by:
 
 - Reporting bootstrap confidence intervals on each calibrated
- quantile;
+  quantile;
 - Using overlapping windows (with adjusted standard errors) where the
- stationarity assumption is plausible;
+  stationarity assumption is plausible;
 - Sensitivity tests at the 95th and 99.5th percentiles alongside the
- 99th.
+  99th.
 
 ---
 
@@ -419,28 +419,28 @@ percentiles.
 ### 5.3 Concrete Monte Carlo use cases
 
 1. **Bad debt distribution under S4**: expectation, 95th and 99th
- percentiles of bad debt. Headline number for a market's tail risk.
+  percentiles of bad debt. Headline number for a market's tail risk.
 2. **Time-to-illiquid under S1**: median, interquartile range,
- probability that time-to-illiquid is less than 24 hours.
+  probability that time-to-illiquid is less than 24 hours.
 3. **Joint scenario Value-at-Risk**: combine S3 and S1 (oracle drop
- plus supplier panic) as a compound event; estimate the 99% liquidity
- Value-at-Risk, defined as the 99th-percentile of the net liquidity
- gap.
+  plus supplier panic) as a compound event; estimate the 99% liquidity
+  Value-at-Risk, defined as the 99th-percentile of the net liquidity
+  gap.
 
 ### 5.4 Computational budget
 
 - One trajectory at $h = 30$ days: approximately 216,000 blocks
- (Ethereum), optimised to approximately 2,500 effective steps with
- sparse position updates → approximately 0.5 to 2 seconds in
- vectorised Python;
+  (Ethereum), optimised to approximately 2,500 effective steps with
+  sparse position updates → approximately 0.5 to 2 seconds in
+  vectorised Python;
 - 10,000 Monte Carlo paths × 5 markets × 5 scenarios = 250,000
- trajectories;
+  trajectories;
 - Single-machine estimate: 35 to 140 hours;
 - **Plan B**: 1,000 paths as a baseline (3.5 to 14 hours) plus 10,000
- paths only on markets and scenarios flagged red. Recommended default
- for the baseline run.
+  paths only on markets and scenarios flagged red. Recommended default
+  for the baseline run.
 - Parallelisation via `joblib` over CPUs gives a 5-to-8-fold speedup
- on a workstation.
+  on a workstation.
 
 ### 5.5 Distributional-assumption health check
 
@@ -448,10 +448,10 @@ Empirical distributions on 12 months are **weak in the tail** —
 particularly for assets with short history. Mitigations:
 
 - *Block bootstrap* with 24-hour block size to preserve
- autocorrelation;
+  autocorrelation;
 - *Tail Pareto fit* for $\Delta$ as a sensitivity test;
 - *Cross-asset pooling* for $\pi$ where collateral types share
- liquidity venues.
+  liquidity venues.
 
 ---
 
@@ -463,9 +463,9 @@ Apply the framework retrospectively at $t_0$ = 18 April 2026 (one day
 before the KelpDAO event). The framework **passes** if, for affected
 markets, at least one of the following holds:
 
-- $\mathrm{LCR}_{\mathrm{onchain}}(M, t_0, \sigma_{\mathrm{S5}}, h = 24\text{h}) < 100\%$;
-- *Time-to-illiquid* $(M, \sigma_{\mathrm{S1}, q_{0.99}}, h = 24\text{h}) < 24$ hours;
-- $\Pr[\text{bad debt} > 0 \mid \sigma_{\mathrm{S4}}] > 5\%$,
+- $\mathrm{LCR_{oc}}(M, t_0, \sigma_{S5}, h = 24\text{h}) < 100\%$;
+- *Time-to-illiquid* $(M, \sigma_{S1,q_{0.99}}, h = 24\text{h}) < 24$ hours;
+- $\Pr[\text{bad debt} > 0 \mid \sigma_{S4}] > 5\%$,
 
 is satisfied **before** the event timestamp.
 
@@ -474,7 +474,7 @@ wrong:
 
 1. The framework is mis-calibrated;
 2. The event was unforeseeable from on-chain data alone (the
- academically interesting outcome);
+  academically interesting outcome);
 3. The specification has a bug.
 
 We commit to reporting all three honestly.
@@ -483,7 +483,7 @@ We commit to reporting all three honestly.
 
 For markets with risk scores published by Gauntlet, ChaosLabs, or
 LlamaRisk in the same window, compute the *Spearman rank correlation*
-between our $\mathrm{LCR}_{\mathrm{onchain}}$ ranking and theirs.
+between our $\mathrm{LCR_{oc}}$ ranking and theirs.
 Expected: Spearman $\rho > 0.5$. Lower correlation either reflects
 genuine differentiation or model error; the writeup must explain
 which.
@@ -491,14 +491,14 @@ which.
 ### 6.3 Sanity tests (smoke tests)
 
 - Markets with $U_{t_0} < 50\%$ and well-funded suppliers should
- *never* reach illiquidity under $\sigma_{\mathrm{S1}}$ at the
- 99th-percentile $\alpha$. If they do, model bug.
+  *never* reach illiquidity under $\sigma_{S1}$ at the
+  99th-percentile $\alpha$. If they do, model bug.
 - Markets with collateral on Curve-or-Uniswap deep liquidity should
- have *lower* realised $\pi$ than markets with thin
- liquid-restaking-token or real-world-asset collateral. If the
- ordering inverts, the slippage fit has a bug.
+  have *lower* realised $\pi$ than markets with thin
+  liquid-restaking-token or real-world-asset collateral. If the
+  ordering inverts, the slippage fit has a bug.
 - The framework should be **monotonic in stress severity**: more
- stress yields worse metrics. Non-monotonicity indicates a bug.
+  stress yields worse metrics. Non-monotonicity indicates a bug.
 
 ---
 
@@ -506,7 +506,7 @@ which.
 
 | Metric | Type | Format | Threshold |
 |---|---|---|---|
-| $\mathrm{LCR}_{\mathrm{onchain}}$ | float | percentage | green $\geq 150\%$ / yellow $\in [100\%, 150\%)$ / red $< 100\%$ |
+| $\mathrm{LCR_{oc}}$ | float | percentage | green $\geq 150\%$ / yellow $\in [100\%, 150\%)$ / red $< 100\%$ |
 | Time-to-illiquid | int | blocks (or null) | green $\geq 7$d / yellow $\in [24\text{h}, 7\text{d})$ / red $< 24$h |
 | Expected bad debt | float | U.S. dollars (point mode: scalar; Monte Carlo: distribution) | green 0 / yellow $< 1\%$ Total Value Locked / red $\geq 1\%$ |
 | Slippage shortfall | float | U.S. dollars | reported, no threshold |

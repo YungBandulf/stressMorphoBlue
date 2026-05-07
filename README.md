@@ -1,4 +1,4 @@
-# Morpho Blue — Liquidity Stress Testing Framework
+# Morpho Blue/ Liquidity Stress Testing Framework
 
 > A liquidity stress testing framework for Morpho Blue isolated
 > lending markets and MetaMorpho vaults, adapted from Basel III
@@ -139,7 +139,7 @@ event-calibrated outflow fraction.
 
 ## License
 
-MIT (to be confirmed before public release).
+MIT.
 
 ## Disclaimer
 

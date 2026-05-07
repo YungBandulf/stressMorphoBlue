@@ -1,44 +1,109 @@
-# Phase 2 — Scripts
+# Data acquisition pipeline
 
-Each script is a standalone, idempotent CLI entry point.
-All read configuration from `config.local.yaml` (or a path passed via `--config`).
+These scripts populate `data/cache/*.parquet` from on-chain and off-chain
+sources. They form the Phase 2 deliverable described in
+[`docs/DATA.md`](../docs/DATA.md).
 
-## Implementation status
+## Pre-requisites
 
-| Script | Role | Status |
-|---|---|---|
-| `select_markets.py` | Pick top-N markets from DeFiLlama, freeze IDs into `config.local.yaml` | ⏳ stub pending |
-| `fetch_markets.py` | Read market params via RPC; write `markets.parquet` | ⚠ skeleton — orchestration done, ABI calls stubbed |
-| `fetch_market_state.py` | Time series of market state via `eth_call` per block sample | ⏳ stub pending |
-| `fetch_events.py` | Supply/Withdraw/Borrow/Repay/Liquidate events via subgraph paginated | ⏳ stub pending |
-| `fetch_oracle_prices.py` | Per-block oracle reads | ⏳ stub pending |
-| `fetch_dex_quotes.py` | 1inch quotes for slippage calibration | ⏳ stub pending |
-| `fetch_uniswap_swaps.py` | Historical fills from Uniswap v3 subgraph | ⏳ stub pending |
-| `build_catalog.py` | Build/refresh the DuckDB catalog over Parquet files | ⏳ stub pending |
+1. Python environment with the project installed: `pip install -e ".[dev]"`
+2. A `config.local.yaml` at the project root with:
+   - `network.rpc_url` (Alchemy or other Ethereum mainnet endpoint)
+   - `subgraph.url` and `subgraph.api_key` (for events and market discovery)
+   - `morpho_blue.contract` (default mainnet address, do not change unless
+     pointing to a fork)
+   - `range.start_ts` and `range.end_ts` (UTC timestamps)
+   - `sampling.*` cadences (default values are sensible)
+   - `markets:` (list of market ids — fill by running
+     `scripts/select_markets.py` first)
 
-## Run order
+3. Free-tier API accounts:
+   - Alchemy (or any other Ethereum RPC provider)
+   - The Graph (for the Morpho Blue subgraph)
+   - DeFiLlama (no auth required)
 
-The scripts are designed to run in this order, but each is idempotent so partial reruns are safe:
+## Pipeline order (dependencies)
 
-```bash
-python scripts/select_markets.py    # produces config.local.yaml with frozen markets
-python scripts/fetch_markets.py     # markets.parquet
-python scripts/fetch_market_state.py
-python scripts/fetch_events.py
-python scripts/fetch_oracle_prices.py
-python scripts/fetch_dex_quotes.py
-python scripts/fetch_uniswap_swaps.py
-python scripts/build_catalog.py     # final DuckDB views
+```
+   select_markets.py         (subgraph)
+            ↓
+       fetch_markets.py      (RPC; needs config.markets populated)
+            ↓
+   ┌────────┼────────┬──────────────────────────┐
+   ↓        ↓        ↓                          ↓
+ fetch_  fetch_   fetch_                      fetch_
+ market_ events.  oracle_                     uniswap_
+ state.  py       prices.py                   quotes.py
+ py      (sub-    (RPC)                       (RPC)
+ (RPC)   graph)
+                                  ↓
+                          fetch_tvl.py
+                          (DeFiLlama, independent)
 ```
 
-## Why most scripts are stubs
+## Step-by-step usage
 
-This repo's Phase 2 pull request establishes:
+```bash
+# Activate venv
+source .venv/bin/activate          # macOS / Linux
+.\.venv\Scripts\Activate.ps1       # Windows
 
-1. **Architecture** — schemas, storage, manifest, config, RPC and subgraph clients
-2. **Tests** — unit-tested storage layer with strict schema validation
-3. **One end-to-end harness** — `fetch_markets.py` shows the canonical flow
+# 1. Discover top-N markets and patch config.local.yaml
+python scripts/select_markets.py --top 10 --in-place
 
-The remaining scripts will fill in the same template; each addition is a
-self-contained PR for review. Implementing them all in one shot before
-validating the architecture against real data would be premature.
+# 2. Fetch market metadata (RPC). ~1-5 min for 10 markets.
+python scripts/fetch_markets.py
+
+# 3. Fetch TVL (DeFiLlama). ~10 sec, no dependencies.
+python scripts/fetch_tvl.py
+
+# 4. Fetch market state time series (RPC). 5-30 min depending on cadence
+#    and number of markets.
+python scripts/fetch_market_state.py
+
+# 5. Fetch oracle prices (RPC). 2-10 min.
+python scripts/fetch_oracle_prices.py
+
+# 6. Fetch events from subgraph. 1-5 min.
+python scripts/fetch_events.py
+
+# 7. Quote slippage curve via Uniswap V3 Quoter (RPC). 1-2 min.
+python scripts/fetch_uniswap_quotes.py
+```
+
+## Idempotence
+
+Each script is idempotent: re-running with the same configuration
+produces the same output (modulo the most recent block, which advances
+between runs). Output files are versioned in `data/manifest.json` with
+SHA-256 checksums for reproducibility.
+
+## Rate limits
+
+The pipeline is calibrated to free-tier rate limits:
+
+- **Alchemy free**: ~100 requests/second sustained, 300M compute units/month.
+  Our pipeline uses < 0.5% of monthly quota for a full run on 10 markets.
+- **The Graph free**: 100K queries/month. Our pipeline uses < 1%.
+- **DeFiLlama**: no documented rate limit; our usage is one request total.
+
+If you hit rate limits, increase the `wait_exponential` parameters in
+`tenacity` decorators within `src/morpho_stress/data/{rpc,subgraph}.py`.
+
+## Validation after fetch
+
+```bash
+# Inspect what was written
+python -c "
+import duckdb
+con = duckdb.connect('data/catalog.duckdb', read_only=True)
+print(con.execute('DESCRIBE markets').df())
+print(con.execute('SELECT loan_asset_symbol, collateral_asset_symbol, lltv FROM markets').df())
+"
+
+# Run all tests, including the data-layer tests
+PYTHONPATH=src pytest tests/data/ -v
+```
+
+If any Parquet write fails the schema check, the script exits non-zero
+and writes nothing. Type drift will not silently corrupt the cache.

@@ -11,7 +11,7 @@ network:
 # Verify against https://docs.morpho.org/getting-started/resources/addresses
 # before any production run.
 morpho_blue:
-  contract: "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFFb"
+  contract: "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb"
 
 subgraph:
   # Hosted Morpho Blue subgraph — confirm latest URL on
@@ -19,9 +19,10 @@ subgraph:
   url: "https://api.thegraph.com/subgraphs/name/morpho-org/morpho-blue"
   api_key: "${GRAPH_API_KEY}"  # optional on hosted, required on decentralized network
 
-oneinch:
-  api_url: "https://api.1inch.dev/swap/v6.0/1"
-  api_key: "${ONEINCH_API_KEY}"
+# Note: forward-looking slippage curves are quoted directly via the Uniswap V3
+# QuoterV2 contract on mainnet (no third-party API key required).
+# If you need cross-DEX aggregation (Curve, Balancer, etc.), add separate
+# fetchers; this is documented in docs/DATA.md as a future extension.
 
 sampling:
   market_state_period_blocks: 1800   # ≈ 6h on Ethereum (12s/block)

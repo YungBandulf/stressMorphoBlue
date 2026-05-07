@@ -173,6 +173,17 @@ DEX_SLIPPAGE = pa.schema(
 # Registry
 # ---------------------------------------------------------------------------
 
+TVL_DAILY = pa.schema(
+    [
+        ("date", pa.date32()),
+        ("protocol", pa.string()),
+        ("chain", pa.string()),
+        ("tvl_usd", pa.float64()),
+        ("source", pa.string()),
+    ]
+)
+
+
 REGISTRY: dict[str, pa.Schema] = {
     "markets": MARKETS,
     "market_state": MARKET_STATE,
@@ -184,6 +195,7 @@ REGISTRY: dict[str, pa.Schema] = {
     "positions": POSITIONS,
     "oracle_prices": ORACLE_PRICES,
     "dex_slippage": DEX_SLIPPAGE,
+    "tvl_daily": TVL_DAILY,
 }
 
 

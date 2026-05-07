@@ -29,7 +29,9 @@ class SubgraphClient:
         timeout: float = 30.0,
         page_size: int = 1000,
     ) -> None:
-        self._url = url
+        # Coerce to plain str: callers may pass pydantic HttpUrl, which is
+        # not accepted by httpx as of httpx 0.27 (strict url types).
+        self._url = str(url)
         self._headers: dict[str, str] = {"Content-Type": "application/json"}
         if api_key:
             self._headers["Authorization"] = f"Bearer {api_key}"
@@ -52,6 +54,17 @@ class SubgraphClient:
         response = self._client.post(
             self._url, json={"query": query, "variables": variables}
         )
+        # On 4xx/5xx, log the body before raising — helps diagnose
+        # GraphQL query/schema mismatches that return 400 with details.
+        if response.status_code >= 400:
+            try:
+                body_preview = response.text[:1000]
+            except Exception:
+                body_preview = "<unreadable>"
+            logger.error(
+                "HTTP %d from %s: %s",
+                response.status_code, self._url, body_preview,
+            )
         response.raise_for_status()
         body = response.json()
         if "errors" in body and body["errors"]:

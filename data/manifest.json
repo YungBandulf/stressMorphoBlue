@@ -1,0 +1,216 @@
+{
+  "schema_version": "0.1",
+  "runs": [
+    {
+      "run_id": "2026-05-07T08-10-06Z",
+      "run_ts": "2026-05-07T08:10:06.881485+00:00",
+      "config_hash": "sha256:95415b91f6eee10cfb72e766526379b887aea39b4b9906e58f5cef3460e136ab",
+      "block_range_min": 0,
+      "block_range_max": 25041838,
+      "markets": [
+        "0x64d65c9a2d91c36d56fbc42d69e979335320169b3df63bf92789e2c8883fcc64",
+        "0xe7e9694b754c4d4f7e21faf7223f6fa71abaeb10296a4c43a54a7977149687d2",
+        "0x3a85e619751152991742810df6ec69ce473daef99e28a64ab2340d7b7ccfee49",
+        "0x90ef0c5a0dc7c4de4ad4585002d44e9d411d212d2f6258e94948beecf8b4c0d5",
+        "0x3274643db77a064abd3bc851de77556a4ad2e2f502f4f0c80845fa8f909ecf0b"
+      ],
+      "files": {
+        "markets.parquet": {
+          "path": "data/cache/markets.parquet",
+          "schema": "markets",
+          "rows": 5,
+          "bytes": 5576,
+          "sha256": "0b7c0d59d648cbde202ea748861218e3b2615fd853a66e031731859bed6a651d"
+        }
+      },
+      "validation": {
+        "all_passed": true,
+        "warnings": [],
+        "errors": []
+      }
+    },
+    {
+      "run_id": "2026-05-07T08-17-21Z",
+      "run_ts": "2026-05-07T08:17:21.831854+00:00",
+      "config_hash": "sha256:95415b91f6eee10cfb72e766526379b887aea39b4b9906e58f5cef3460e136ab",
+      "block_range_min": 0,
+      "block_range_max": 25041876,
+      "markets": [
+        "0x64d65c9a2d91c36d56fbc42d69e979335320169b3df63bf92789e2c8883fcc64",
+        "0xe7e9694b754c4d4f7e21faf7223f6fa71abaeb10296a4c43a54a7977149687d2",
+        "0x3a85e619751152991742810df6ec69ce473daef99e28a64ab2340d7b7ccfee49",
+        "0x90ef0c5a0dc7c4de4ad4585002d44e9d411d212d2f6258e94948beecf8b4c0d5",
+        "0x3274643db77a064abd3bc851de77556a4ad2e2f502f4f0c80845fa8f909ecf0b"
+      ],
+      "files": {
+        "markets.parquet": {
+          "path": "data/cache/markets.parquet",
+          "schema": "markets",
+          "rows": 5,
+          "bytes": 5566,
+          "sha256": "76d67445bbf48b27f910ef5b6a3849ec60d9c6a68084deba787c3051228b4435"
+        }
+      },
+      "validation": {
+        "all_passed": true,
+        "warnings": [],
+        "errors": []
+      }
+    },
+    {
+      "run_id": "2026-05-07T08-18-47Z",
+      "run_ts": "2026-05-07T08:18:47.387092+00:00",
+      "config_hash": "defillama_only",
+      "block_range_min": 0,
+      "block_range_max": 0,
+      "markets": [],
+      "files": {
+        "tvl_daily.parquet": {
+          "path": "data/cache/tvl_daily.parquet",
+          "schema": "tvl_daily",
+          "rows": 12372,
+          "bytes": 59668,
+          "sha256": "03e276770ce2e30a7e26e2b862be6adb1d17d07a8aec44ebfcb1bcdbed0a1bca"
+        }
+      },
+      "validation": {
+        "all_passed": true,
+        "warnings": [],
+        "errors": []
+      }
+    },
+    {
+      "run_id": "2026-05-07T08-20-53Z",
+      "run_ts": "2026-05-07T08:20:53.146273+00:00",
+      "config_hash": "sha256:95415b91f6eee10cfb72e766526379b887aea39b4b9906e58f5cef3460e136ab",
+      "block_range_min": 24780223,
+      "block_range_max": 24996223,
+      "markets": [
+        "0x64d65c9a2d91c36d56fbc42d69e979335320169b3df63bf92789e2c8883fcc64",
+        "0xe7e9694b754c4d4f7e21faf7223f6fa71abaeb10296a4c43a54a7977149687d2",
+        "0x3a85e619751152991742810df6ec69ce473daef99e28a64ab2340d7b7ccfee49",
+        "0x90ef0c5a0dc7c4de4ad4585002d44e9d411d212d2f6258e94948beecf8b4c0d5",
+        "0x3274643db77a064abd3bc851de77556a4ad2e2f502f4f0c80845fa8f909ecf0b"
+      ],
+      "files": {
+        "market_state.parquet": {
+          "path": "data/cache/market_state.parquet",
+          "schema": "market_state",
+          "rows": 575,
+          "bytes": 26151,
+          "sha256": "75a62b4c3ad24e6efa87ef326d04d4b256abc27b9469ab3b155b117772c31093"
+        }
+      },
+      "validation": {
+        "all_passed": true,
+        "warnings": [],
+        "errors": []
+      }
+    },
+    {
+      "run_id": "2026-05-07T15-37-00Z",
+      "run_ts": "2026-05-07T15:37:00.927309+00:00",
+      "config_hash": "sha256:95415b91f6eee10cfb72e766526379b887aea39b4b9906e58f5cef3460e136ab",
+      "block_range_min": 0,
+      "block_range_max": 25044068,
+      "markets": [
+        "0x64d65c9a2d91c36d56fbc42d69e979335320169b3df63bf92789e2c8883fcc64",
+        "0xe7e9694b754c4d4f7e21faf7223f6fa71abaeb10296a4c43a54a7977149687d2",
+        "0x3a85e619751152991742810df6ec69ce473daef99e28a64ab2340d7b7ccfee49",
+        "0x90ef0c5a0dc7c4de4ad4585002d44e9d411d212d2f6258e94948beecf8b4c0d5",
+        "0x3274643db77a064abd3bc851de77556a4ad2e2f502f4f0c80845fa8f909ecf0b"
+      ],
+      "files": {
+        "markets.parquet": {
+          "path": "data/cache/markets.parquet",
+          "schema": "markets",
+          "rows": 5,
+          "bytes": 5588,
+          "sha256": "a81de50361d3fca3f5a90f4f3b4ce8d651dce33289df412d470ee6af8267396a"
+        }
+      },
+      "validation": {
+        "all_passed": true,
+        "warnings": [],
+        "errors": []
+      }
+    },
+    {
+      "run_id": "2026-05-07T15-46-19Z",
+      "run_ts": "2026-05-07T15:46:19.581993+00:00",
+      "config_hash": "sha256:95415b91f6eee10cfb72e766526379b887aea39b4b9906e58f5cef3460e136ab",
+      "block_range_min": 24780217,
+      "block_range_max": 25044070,
+      "markets": [
+        "0x64d65c9a2d91c36d56fbc42d69e979335320169b3df63bf92789e2c8883fcc64",
+        "0xe7e9694b754c4d4f7e21faf7223f6fa71abaeb10296a4c43a54a7977149687d2",
+        "0x3a85e619751152991742810df6ec69ce473daef99e28a64ab2340d7b7ccfee49",
+        "0x90ef0c5a0dc7c4de4ad4585002d44e9d411d212d2f6258e94948beecf8b4c0d5",
+        "0x3274643db77a064abd3bc851de77556a4ad2e2f502f4f0c80845fa8f909ecf0b"
+      ],
+      "files": {
+        "oracle_prices.parquet": {
+          "path": "data/cache/oracle_prices.parquet",
+          "schema": "oracle_prices",
+          "rows": 4370,
+          "bytes": 47389,
+          "sha256": "2c12553c10d465e351064f814e09ee7090e808b044f8738650a19f0eedee6e0b"
+        }
+      },
+      "validation": {
+        "all_passed": true,
+        "warnings": [],
+        "errors": []
+      }
+    },
+    {
+      "run_id": "2026-05-07T15-47-23Z",
+      "run_ts": "2026-05-07T15:47:23.580048+00:00",
+      "config_hash": "sha256:95415b91f6eee10cfb72e766526379b887aea39b4b9906e58f5cef3460e136ab",
+      "block_range_min": 0,
+      "block_range_max": 0,
+      "markets": [
+        "0x64d65c9a2d91c36d56fbc42d69e979335320169b3df63bf92789e2c8883fcc64",
+        "0xe7e9694b754c4d4f7e21faf7223f6fa71abaeb10296a4c43a54a7977149687d2",
+        "0x3a85e619751152991742810df6ec69ce473daef99e28a64ab2340d7b7ccfee49",
+        "0x90ef0c5a0dc7c4de4ad4585002d44e9d411d212d2f6258e94948beecf8b4c0d5",
+        "0x3274643db77a064abd3bc851de77556a4ad2e2f502f4f0c80845fa8f909ecf0b"
+      ],
+      "files": {
+        "events_supply.parquet": {
+          "path": "data\\cache\\events_supply.parquet",
+          "schema": "events_supply",
+          "rows": 18190,
+          "bytes": 1033292,
+          "sha256": "b4f887e3f16cccfa14819850d2a9078c7dff136a1d98ea616803744e634d1543"
+        },
+        "events_withdraw.parquet": {
+          "path": "data\\cache\\events_withdraw.parquet",
+          "schema": "events_withdraw",
+          "rows": 17216,
+          "bytes": 1089341,
+          "sha256": "e25e73548fb3dfddcb0f307afebef2bff7b2d16a5a9db739518e633a61c518fe"
+        },
+        "events_borrow.parquet": {
+          "path": "data\\cache\\events_borrow.parquet",
+          "schema": "events_borrow",
+          "rows": 2115,
+          "bytes": 173057,
+          "sha256": "3b9dd3fe4746b9a2f0bab96176a429804a749ecf3171ab4c6ab2b7f41cdc5d0e"
+        },
+        "events_repay.parquet": {
+          "path": "data\\cache\\events_repay.parquet",
+          "schema": "events_repay",
+          "rows": 1397,
+          "bytes": 109359,
+          "sha256": "61da2be3540eb42d53c6030319ed400e1a0ada37a4c2b1e928cf62c8bb65cf38"
+        }
+      },
+      "validation": {
+        "all_passed": true,
+        "warnings": [],
+        "errors": []
+      }
+    }
+  ]
+}

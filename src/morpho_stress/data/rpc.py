@@ -42,7 +42,8 @@ class RPCClient:
 
     @staticmethod
     def _make_w3(url: str, timeout: int) -> Web3:
-        return Web3(HTTPProvider(url, request_kwargs={"timeout": timeout}))
+        # Coerce to plain str (callers may pass pydantic HttpUrl)
+        return Web3(HTTPProvider(str(url), request_kwargs={"timeout": timeout}))
 
     @property
     def primary(self) -> Web3:

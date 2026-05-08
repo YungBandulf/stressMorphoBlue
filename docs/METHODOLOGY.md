@@ -1,9 +1,9 @@
-# Methodology — Liquidity Stress Testing Framework for Morpho Blue
+# Methodology: Liquidity Stress Testing Framework for Morpho Blue
 
-> Version: 0.3 — Last updated: May 2026
-> Status: Phase 0 deliverable — methodological note (revised through Phase 5)
-> Companion: [`SCENARIOS.md`](./SCENARIOS.md) — stress-scenario specifications;
-> [`GLOSSARY.md`](./GLOSSARY.md) — definitions of all specialised terms.
+> Version: 0.3. Last updated: May 2026
+> Status: Phase 0 deliverable. methodological note (revised through Phase 5)
+> Companion: [`SCENARIOS.md`](./SCENARIOS.md). stress-scenario specifications;
+> [`GLOSSARY.md`](./GLOSSARY.md). definitions of all specialised terms.
 > Author: PA
 
 ---
@@ -26,13 +26,13 @@ We adopt the Popperian standard: a primary hypothesis is a claim
 formulated such that observations could refute it.
 
 Given the on-chain state of a Morpho Blue lending market $M$ at block
-$t$ — characterised by the tuple
+$t$, characterised by the tuple
 $(S_t, B_t, \Lambda, \text{oracle}, \text{interest rate model}, \pi)$
 where $S_t$ is total supply (loan-asset units), $B_t$ is total borrow
 (loan-asset units), $\Lambda$ is the liquidation loan-to-value
 threshold (a market parameter, $\in [0,1]$), and $\pi$ is the
 slippage curve of the collateral on the relevant decentralised
-exchange — there exists a stress scenario $\sigma$ such that, at
+exchange, there exists a stress scenario $\sigma$ such that, at
 horizon $h$ blocks, the market enters one of two distress states:
 
 - **Illiquid state**: incapacity to satisfy supplier withdrawal demand
@@ -79,8 +79,8 @@ compute curator counterfactuals.
   International Settlements Working Paper 1062, 2023) show that
   decentralised-finance lending pools are inherently fragile, but
   published work focuses on monolithic pools (Aave, Compound). Morpho
-  Blue's *isolated-market design* — in which each market is an
-  immutable tuple sharing no liquidity with others — has no comparable
+  Blue's *isolated-market design*, in which each market is an
+  immutable tuple sharing no liquidity with others, has no comparable
   formal stress-testing framework.
 
 - **Industry gap**: Risk reports from Gauntlet, Block Analitica and
@@ -110,11 +110,11 @@ in this document for brevity from now on) are defined by the Basel
 Committee in three tiers:
 
 - **Level 1**: cash, central-bank reserves, and top-rated sovereign
-  debt — haircut 0% (the haircut being the fraction of value assumed
+  debt, haircut 0% (the haircut being the fraction of value assumed
   lost on monetisation under stress).
-- **Level 2A**: highly liquid corporate or covered bonds — haircut
+- **Level 2A**: highly liquid corporate or covered bonds, haircut
   15%.
-- **Level 2B**: lower-rated corporate or equity — haircut 25 to 50%.
+- **Level 2B**: lower-rated corporate or equity, haircut 25 to 50%.
 
 The **net cash outflows** (the denominator) are computed under a
 stress scenario specified by the Basel Committee, with runoff factors
@@ -124,8 +124,8 @@ financial corporates).
 
 We construct an on-chain analogue of the Liquidity Coverage Ratio for
 a Morpho Blue lending market $M$ at block $t$, denoted
-$\mathrm{LCR_{oc}}(M, t, \sigma, h)$ — where the subscript "oc" stands
-for "on-chain" — and where $\sigma$ is the stress scenario and $h$ is
+$\mathrm{LCR_{oc}}(M, t, \sigma, h)$, where the subscript "oc" stands
+for "on-chain", and where $\sigma$ is the stress scenario and $h$ is
 the horizon in blocks:
 
 $$\mathrm{LCR_{oc}}(M, t, \sigma, h) = \frac{L_1(M, t) \,+\, L_{2A,\mathrm{net}}(M, t, \sigma)}{O_\sigma(M, t, h) - \min\left(I_\sigma(M, t, h), 0.75 \cdot O_\sigma\right)}$$
@@ -191,7 +191,7 @@ formula
 $$\phi(\Lambda) = \min\left(1.15, \frac{1}{0.3 \cdot \Lambda + 0.7}\right),$$
 
 capping the bonus at 15% above debt for low values of $\Lambda$. For
-$\Lambda = 0.86$ (typical for major asset–stablecoin pairs), $\phi$
+$\Lambda = 0.86$ (typical for major asset, stablecoin pairs), $\phi$
 is approximately $1.043$.
 
 ### 2.3 Honest critique of the adaptation
@@ -218,7 +218,7 @@ but not unique. We list the tensions explicitly:
   inputs in the baseline. In reality, oracle behaviour
   (time-weighted-average-price smoothing, deviation thresholds,
   fallback logic) is endogenous to the stress scenario. This is a
-  deliberate baseline simplification — modelled as a sensitivity
+  deliberate baseline simplification, modelled as a sensitivity
   analysis, not a structural feature.
 
 ### 2.4 Event-calibrated outflow fraction
@@ -239,7 +239,7 @@ The constant $1.5$ and the additive 30% (the *whale-concentration
 term*) are calibrated from observed withdrawal velocity in real
 events, as discussed in [`REPORT.md`](./REPORT.md) §2.1.
 
-### 2.5 The Net Stable Funding Ratio — a more discriminating angle
+### 2.5 The Net Stable Funding Ratio: a more discriminating angle
 
 The Net Stable Funding Ratio defined in BCBS 295 (2014) is
 
@@ -264,7 +264,7 @@ Ratio**: how much funding is *empirically* stable, given oracle
 health, prevailing yield differential versus alternatives, and
 supplier concentration? This reduces to estimating a
 *withdrawal-survival function* $S(t \mid \text{features})$, which we
-model via Kaplan–Meier-style empirical cumulative distributions on
+model via Kaplan, Meier-style empirical cumulative distributions on
 historical supplier behaviour. This is **the academic contribution of
 the project** beyond the descriptive stress-test layer.
 
@@ -306,9 +306,9 @@ Twelve rolling months: May 2025 through May 2026. This window contains:
 
 Three values of $h$, reported in parallel:
 
-- **24 hours** — equivalent of an intraday liquidity squeeze;
-- **7 days** — short-horizon stress;
-- **30 days** — Basel-equivalent horizon.
+- **24 hours**, equivalent of an intraday liquidity squeeze;
+- **7 days**, short-horizon stress;
+- **30 days**, Basel-equivalent horizon.
 
 ### 3.4 Stress scenarios (four plus one)
 
@@ -327,14 +327,14 @@ Summary:
 
 For each (market, scenario, horizon) tuple:
 
-- $\mathrm{LCR_{oc}}$ — the primary metric, reported as
+- $\mathrm{LCR_{oc}}$, the primary metric, reported as
   a time series and worst-case;
-- *Time-to-illiquid* — first block at which available liquidity is
+- *Time-to-illiquid*: first block at which available liquidity is
   exhausted under the scenario;
-- *Expected bad debt* — sum of unrecovered debt at end of horizon;
-- *Slippage-adjusted shortfall* — gap between oracle-priced collateral
+- *Expected bad debt*: sum of unrecovered debt at end of horizon;
+- *Slippage-adjusted shortfall*: gap between oracle-priced collateral
   and decentralised-exchange-realised recovery;
-- *Withdrawal survival curve* — empirical $S(t \mid \sigma)$ for the
+- *Withdrawal survival curve*: empirical $S(t \mid \sigma)$ for the
   secondary hypothesis.
 
 ---
@@ -346,7 +346,7 @@ For each (market, scenario, horizon) tuple:
   large liquidations move decentralised-exchange prices, which
   trigger more liquidations (a feedback loop). Capponi and Jia
   (2021) and follow-up work formalise this. Modelling it requires
-  agent-based simulation or a fixed-point solver — out of scope at
+  agent-based simulation or a fixed-point solver, out of scope at
   the baseline; flagged for a future version.
 
 2. **Oracle as exogenous input**: time-weighted-average-price
@@ -369,7 +369,7 @@ For each (market, scenario, horizon) tuple:
   intervals are reported but should be taken as indicative.
 
 6. **Monte Carlo as retained extension**: scenarios are designed in
-  dual mode — point (deterministic shocks at empirical quantiles)
+  dual mode, point (deterministic shocks at empirical quantiles)
   and Monte Carlo (sampled from empirical distributions, with $N$
   paths and confidence intervals). Monte Carlo is *not* deferred
   future work: it is part of the baseline specification (see
@@ -416,5 +416,5 @@ anchors:
 | Version | Date | Changes |
 |---|---|---|
 | 0.1 | 2026-05-04 | Initial draft (Phase 0) |
-| 0.2 | 2026-05-04 | §4.6 — Monte Carlo retained as baseline extension; companion `SCENARIOS.md` published |
+| 0.2 | 2026-05-04 | §4.6, Monte Carlo retained as baseline extension; companion `SCENARIOS.md` published |
 | 0.3 | 2026-05-05 | All abbreviations spelled out at first use; per-position liquidation recovery (§2.2) introduced; companion `GLOSSARY.md` published |

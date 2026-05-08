@@ -7,7 +7,7 @@
 > events (the KelpDAO exploit of April 2026, the USDC depeg of March
 > 2023, and the staked-Ether discount episode of May 2022). Two of
 > three events are correctly flagged ahead of the event by our
-> pre-event detection criteria; the third failure is informative — the
+> pre-event detection criteria; the third failure is informative. the
 > staked-Ether episode of May 2022 was a multi-day slow-rolling
 > repricing of the staked-Ether-to-Ether ratio rather than a 24-hour
 > liquidity stress, and our framework correctly does not classify it
@@ -113,7 +113,7 @@ For a Morpho Blue lending market, our adaptation is as follows. Let:
 - $\pi(V) = a \cdot V^b$ denote the slippage of a sale of $V$
   collateral-asset units on a decentralised exchange, expressed as a
   fraction of the oracle price; the parameters $a > 0$ and $b \in (0,1)$
-  are fitted from data per the Almgren–Chriss model (see §2.4).
+  are fitted from data per the Almgren, Chriss model (see §2.4).
 
 The **on-chain Level 1 component** is the available liquidity:
 $L_1 = L$.
@@ -172,10 +172,10 @@ calibrated from observations of withdrawal velocity in real events:
 
 - During the KelpDAO event of April 2026, the Aave Total Value Locked
   fell by approximately 17% in 48 hours, peaking at approximately 10%
-  in 24 hours — implying a withdrawal multiplier in the range
+  in 24 hours, implying a withdrawal multiplier in the range
   $[1.4, 1.7]$ relative to the contemporaneous price drawdown.
 - During the USDC depeg of March 2023, the Aave USDC market saw
-  approximately 25% withdrawals on day one — consistent with a
+  approximately 25% withdrawals on day one, consistent with a
   multiplier of $1.5$ applied to a drawdown of $\approx 12\%$, plus
   a whale-concentration term capturing rapid exit by the largest
   suppliers.
@@ -246,9 +246,9 @@ selected to span distinct risk profiles.
 
 | Event | Type | Day-zero (T-zero) | Counterfactual? |
 |---|---|---|---|
-| **KelpDAO collateral exploit** | Liquid-restaking-token collateral exploit, single-day cascade | 2026-04-19 23:59 UTC | No — Morpho Blue was active |
-| **USDC depeg from Silicon Valley Bank collapse** | Stable-on-stable depeg | 2023-03-10 12:00 UTC | Yes — predates Morpho Blue |
-| **Staked-Ether discount during the Terra/UST collapse** | Liquid-staking-token discount, multi-day slow-roll | 2022-05-11 09:00 UTC | Yes — predates Morpho Blue |
+| **KelpDAO collateral exploit** | Liquid-restaking-token collateral exploit, single-day cascade | 2026-04-19 23:59 UTC | No, Morpho Blue was active |
+| **USDC depeg from Silicon Valley Bank collapse** | Stable-on-stable depeg | 2023-03-10 12:00 UTC | Yes, predates Morpho Blue |
+| **Staked-Ether discount during the Terra/UST collapse** | Liquid-staking-token discount, multi-day slow-roll | 2022-05-11 09:00 UTC | Yes, predates Morpho Blue |
 
 The day-zero (denoted T-zero) is the timestamp at which the framework
 is evaluated, set at 24 hours before the realised stress event. For
@@ -316,12 +316,12 @@ illustrative.
 
 The collateral assets in the roster are:
 
-- **wstETH** — wrapped staked Ether (a liquid-staking-token issued by Lido);
-- **WBTC** — wrapped Bitcoin (an Ethereum representation of Bitcoin);
-- **cbBTC** — Coinbase-wrapped Bitcoin;
-- **sUSDe** — staked Ethena USD (a yield-bearing synthetic stablecoin
+- **wstETH**, wrapped staked Ether (a liquid-staking-token issued by Lido);
+- **WBTC**, wrapped Bitcoin (an Ethereum representation of Bitcoin);
+- **cbBTC**, Coinbase-wrapped Bitcoin;
+- **sUSDe**, staked Ethena USD (a yield-bearing synthetic stablecoin
   issued by Ethena Labs);
-- **weETH** — wrapped, Ether-denominated EtherFi liquid restaking token.
+- **weETH**, wrapped, Ether-denominated EtherFi liquid restaking token.
 
 | Market | Total Value Locked (millions of U.S. dollars) | Utilisation $U$ | Liquidation threshold $\Lambda$ | 99th-percentile drawdown |
 |---|---|---|---|---|
@@ -351,7 +351,7 @@ hours overwhelms the 7-to-15% headroom typical of Morpho markets.
 signal in the forward-looking analysis**; the discrimination comes
 from the bad-debt probability.
 
-### 4.3 The sUSDe/USDC market — the dominant tail risk
+### 4.3 The sUSDe/USDC market: the dominant tail risk
 
 The sUSDe/USDC market is the outlier: the probability of positive bad
 debt is estimated at 100% across our empirical drawdown distribution,
@@ -401,14 +401,14 @@ risk reporting often omits such caveats.
   Our Monte Carlo simulations use 50 to 200 paths drawn from a
   fitted Beta empirical distribution. The 99th-percentile estimate
   has wide confidence intervals; for sUSDe/USDC at probability 100%
-  the result is robust to sampling, but tail magnitudes for
+  the result is reliable to sampling, but tail magnitudes for
   less-stressed markets (wstETH, WBTC) are small numbers dominated
   by sampling noise.
 2. **Counterfactual events are weakly identified.** The USDC and
   staked-Ether events predate Morpho Blue. We synthesised position
   distributions for them, calibrated to plausible parameters of
   current practice. The PASS verdict on the USDC event is more
-  robust than the FAIL verdict on the staked-Ether event because the
+  reliable than the FAIL verdict on the staked-Ether event because the
   USDC drawdown is large enough to drive a clear signal; the
   staked-Ether outcome depends on a distinction between 24-hour and
   multi-day stress that the framework was not designed to make.

@@ -229,9 +229,9 @@ price for a trade of given size:
 $$\text{slippage}(V) = \frac{P_{\text{oracle}} - P_{\text{realised}}(V)}{P_{\text{oracle}}}$$
 
 Slippage grows with trade size $V$. In this repository we model it as a
-power law (see *Almgren–Chriss model* below).
+power law (see *Almgren, Chriss model* below).
 
-### Almgren–Chriss model
+### Almgren:Chriss model
 The empirical impact-cost model from Almgren and Chriss (2000), which
 expresses execution slippage as a power function of trade size:
 

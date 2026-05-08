@@ -1,9 +1,9 @@
-# Stress Scenarios — Formal Specification
+# Stress Scenarios: Formal Specification
 
-> Version: 0.2 — Last updated: May 2026
-> Status: Phase 1 deliverable — formalisation of S1 through S5 prior to implementation
+> Version: 0.2. Last updated: May 2026
+> Status: Phase 1 deliverable. formalisation of S1 through S5 prior to implementation
 > Companion documents: [`METHODOLOGY.md`](./METHODOLOGY.md);
-> [`GLOSSARY.md`](./GLOSSARY.md) — definitions of all specialised terms.
+> [`GLOSSARY.md`](./GLOSSARY.md). definitions of all specialised terms.
 
 ---
 
@@ -132,7 +132,7 @@ Average Price from Uniswap V3 default to the endogenous regime.
 
 ## 3. Scenarios
 
-### S1 — Withdrawal run
+### S1: Withdrawal run
 
 **Description**: a fraction $\alpha$ of suppliers attempt to withdraw
 their balance over duration $T$.
@@ -177,7 +177,7 @@ elasticity. Default at baseline: no response (conservative).
 
 ---
 
-### S2 — Utilisation spike
+### S2: Utilisation spike
 
 **Description**: borrow demand spikes; new borrowers enter the market
 over $T$ blocks.
@@ -204,7 +204,7 @@ this tightens the position-health distribution).
   `behavior = 'rate_response'`, else null. Here $\eta$ is the
   *supplier-rate elasticity*, a calibrated parameter.
 - Position-level: new borrowers' loan-to-value approaches $\Lambda$,
-  so a subsequent S3-style oracle move would liquidate them — an
+  so a subsequent S3-style oracle move would liquidate them, an
   explicit linkage to S4.
 
 **Output metrics**:
@@ -212,11 +212,11 @@ this tightens the position-health distribution).
 - *Peak utilisation*: $\max_\tau U_\tau$ over the horizon;
 - *Unsatisfied borrow demand at horizon*;
 - *Rate trajectory*: the full path of $r_{\text{borrow}}(\tau)$;
-- *Induced fragility*: fraction of new positions with $\text{LTV} > 0.95 \cdot \Lambda$ — these positions feed the input to S4.
+- *Induced fragility*: fraction of new positions with $\text{LTV} > 0.95 \cdot \Lambda$, these positions feed the input to S4.
 
 ---
 
-### S3 — Oracle deviation
+### S3: Oracle deviation
 
 **Description**: the collateral price drops by $\Delta$ over a window
 $\Delta t$; the oracle reports a possibly-lagged price.
@@ -278,18 +278,18 @@ At each block $\tau$:
 
 ---
 
-### S4 — Liquidation cascade (composite)
+### S4: Liquidation cascade (composite)
 
 **Description**: oracle drop combined with liquidations and
 decentralised-exchange slippage feedback. Unlike S3, the *endogenous
-regime* is the **default** — cascade is the point of the scenario.
+regime* is the **default**, cascade is the point of the scenario.
 
 **Shock function $\delta_{S4}$**: joint shock $(\Delta, \Delta t)$ calibrated at the 95th percentile *jointly*. The 99th-percentile
 joint is unreliable on a 12-month sample.
 
 **Behavioural rule $\rho_{S4}$**:
 
-Endogenous feedback — liquidator selling moves the
+Endogenous feedback, liquidator selling moves the
 decentralised-exchange price; if the oracle is
 decentralised-exchange-derived, the oracle follows. Update equation:
 
@@ -326,12 +326,12 @@ sophisticated model would solve a fixed point per block.
   of simultaneous liquidations in any single block;
 - *Realised slippage*: average and worst-block $\pi$ realised;
 - *Feedback amplification*: the ratio of (endogenous cascade bad debt)
-  to (exogenous-counterfactual bad debt) — measures the cost of the
+  to (exogenous-counterfactual bad debt), measures the cost of the
   feedback.
 
 ---
 
-### S5 — KelpDAO replay (event-driven)
+### S5: KelpDAO replay (event-driven)
 
 **Description**: counterfactual replay of the April 2026 KelpDAO event
 applied to current Morpho Blue state.
@@ -444,7 +444,7 @@ percentiles.
 
 ### 5.5 Distributional-assumption health check
 
-Empirical distributions on 12 months are **weak in the tail** —
+Empirical distributions on 12 months are **weak in the tail** ,
 particularly for assets with short history. Mitigations:
 
 - *Block bootstrap* with 24-hour block size to preserve
@@ -520,7 +520,7 @@ which.
 
 | Phase | Item | Dependency |
 |---|---|---|
-| 2 | Data acquisition (subgraph, RPC, decentralised exchange) | — |
+| 2 | Data acquisition (subgraph, RPC, decentralised exchange) |, |
 | 2 | Interest rate model, oracle, slippage models implemented | Phase 2 data |
 | 3 | S1, S2, S3 standalone | Phase 2 |
 | 3 | S4 cascade (both regimes) | S3 |

@@ -1,9 +1,9 @@
-# Backtest Framework — Phase 4
+# Backtest Framework: Phase 4
 
-> Version: 0.2 — Last updated: May 2026
-> Status: Phase 4 deliverable — historical-event validation framework
-> Companion documents: [`SCENARIOS.md §6.1`](./SCENARIOS.md) — validation criteria;
-> [`GLOSSARY.md`](./GLOSSARY.md) — definitions of all specialised terms.
+> Version: 0.2. Last updated: May 2026
+> Status: Phase 4 deliverable. historical-event validation framework
+> Companion documents: [`SCENARIOS.md §6.1`](./SCENARIOS.md). validation criteria;
+> [`GLOSSARY.md`](./GLOSSARY.md). definitions of all specialised terms.
 
 ---
 
@@ -54,18 +54,18 @@ We use three high-impact events with distinct risk profiles, spanning
 the 2022 to 2026 window. Each event is packaged as a versioned
 *fixture* under `data/fixtures/<event-id>/`, comprising:
 
-- `event.yaml` — event metadata (date, $t_0$, affected markets,
+- `event.yaml`, event metadata (date, $t_0$, affected markets,
   summary);
-- `prices.csv` — collateral price time series (oracle and market) for
+- `prices.csv`, collateral price time series (oracle and market) for
   $\pm 5$ days around the event;
-- `markets.json` — affected market states at $t_0 - 1$ day (snapshot);
-- `positions.csv` — borrower positions on those markets at $t_0 - 1$
+- `markets.json`, affected market states at $t_0 - 1$ day (snapshot);
+- `positions.csv`, borrower positions on those markets at $t_0 - 1$
   day;
-- `dex_slippage.csv` — Uniswap V3 historical swaps for slippage
+- `dex_slippage.csv`, Uniswap V3 historical swaps for slippage
   calibration;
-- `sources.md` — full source attribution per data point.
+- `sources.md`, full source attribution per data point.
 
-### 2.1 KelpDAO collateral exploit (April 2026) — primary anchor
+### 2.1 KelpDAO collateral exploit (April 2026): primary anchor
 
 - **Date**: 20 April 2026, approximately 14:00 UTC.
 - **Day-zero ($t_0$)**: 19 April 2026, 23:59 UTC.
@@ -77,13 +77,13 @@ the 2022 to 2026 window. Each event is packaged as a versioned
 - **Why anchor**: most recent, highest-impact, *isolated-market design
   under test*, large MetaMorpho vault flows post-event.
 
-### 2.2 USDC depeg (March 2023) — stable-collateral stress
+### 2.2 USDC depeg (March 2023): stable-collateral stress
 
 - **Date**: 11 March 2023, approximately 02:00 UTC.
 - **Day-zero ($t_0$)**: 10 March 2023, 02:00 UTC.
-- **Description**: The collapse of Silicon Valley Bank — Circle, the
+- **Description**: The collapse of Silicon Valley Bank, Circle, the
   USDC issuer, held approximately 3.3 billion U.S. dollars at Silicon
-  Valley Bank — caused USDC to trade briefly at approximately 0.88
+  Valley Bank, caused USDC to trade briefly at approximately 0.88
   U.S. dollars on secondary markets. The Aave USDC market saw mass
   migration; many DAI-collateralised positions liquidated as DAI fell
   in tandem with USDC, given DAI's significant USDC backing on Maker.
@@ -93,7 +93,7 @@ the 2022 to 2026 window. Each event is packaged as a versioned
   Morpho Blue lending market with the same collateral-and-loan-asset
   pair.
 
-### 2.3 Staked-Ether discount (May 2022) — liquid-staking-token discount
+### 2.3 Staked-Ether discount (May 2022): liquid-staking-token discount
 
 - **Date**: 12 May 2022, approximately 09:00 UTC.
 - **Day-zero ($t_0$)**: 11 May 2022, 09:00 UTC.
@@ -101,14 +101,14 @@ the 2022 to 2026 window. Each event is packaged as a versioned
   underlying asset, Ether, on Curve following the collapse of Terra
   and its UST stablecoin, combined with concerns over the staked-Ether
   withdrawal queue (pre-Shapella, staked-Ether had no direct
-  withdrawal mechanism — the Curve staked-Ether-to-Ether pool was the
+  withdrawal mechanism, the Curve staked-Ether-to-Ether pool was the
   de facto exit liquidity, and it became heavily skewed). Aave
   staked-Ether-to-Ether positions sat near liquidation thresholds;
   manual intervention from the Aave team avoided large liquidation
   cascades.
 - **Why selected**: a structural discount on a liquid-staking-token
   versus its underlying asset; a slow-rolling drawdown (not instant);
-  predates Morpho Blue — counterfactual application.
+  predates Morpho Blue, counterfactual application.
 
 ---
 
@@ -208,7 +208,7 @@ Slippage in `slippage_bps` is in basis points (1 basis point = 0.01%).
 
 ---
 
-## 5. Validation criteria — pass-or-fail rules
+## 5. Validation criteria: pass-or-fail rules
 
 For each event, the framework runs and produces a verdict.
 
@@ -244,7 +244,7 @@ KelpDAO event must pass absolutely (it is the primary anchor).
   predate Morpho Blue. The results are indicative, not historically
   accurate.
 2. **Position distribution is synthetic** for counterfactual events.
-  Real borrower behaviour (concentration, leverage skew) is hard to
+  Real borrower behaviour (concentration, use skew) is hard to
   reconstruct.
 3. **Slippage curves are calibrated on time-of-event Uniswap data**.
   Liquidity conditions evolved post-event; we use what would have

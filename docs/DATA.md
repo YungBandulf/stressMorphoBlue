@@ -1,8 +1,8 @@
-# Data Architecture — Phase 2
+# Data Architecture: Phase 2
 
-> Version: 0.2 — Last updated: May 2026
-> Status: Phase 2 deliverable — data-acquisition specification and implementation
-> Companion document: [`GLOSSARY.md`](./GLOSSARY.md) — definitions of all specialised terms.
+> Version: 0.2. Last updated: May 2026
+> Status: Phase 2 deliverable. data-acquisition specification and implementation
+> Companion document: [`GLOSSARY.md`](./GLOSSARY.md). definitions of all specialised terms.
 > Scope: top-three lending markets initially, extension to top-five at Phase 2 close.
 
 ---
@@ -25,7 +25,7 @@ layer.
 
 | Category | Canonical source | Why | Validation source |
 |---|---|---|---|
-| Market state (total supply, total borrow, supply-and-borrow shares, accruals) | Remote Procedure Call (the protocol used to communicate with a blockchain node from off-chain software, abbreviated *RPC* hereafter) — specifically `eth_call` on the Morpho Blue contract at specific block heights | Exact, deterministic, safe from chain reorganisation at depth $\geq 32$ blocks | Subgraph (which has higher latency and reorganisation risk) |
+| Market state (total supply, total borrow, supply-and-borrow shares, accruals) | Remote Procedure Call (the protocol used to communicate with a blockchain node from off-chain software, abbreviated *RPC* hereafter), specifically `eth_call` on the Morpho Blue contract at specific block heights | Exact, deterministic, safe from chain reorganisation at depth $\geq 32$ blocks | Subgraph (which has higher latency and reorganisation risk) |
 | Events (Supply, Withdraw, Borrow, Repay, Liquidate) | Subgraph (Morpho hosted on The Graph protocol) | Native event indexing | RPC `eth_getLogs` for spot validation |
 | Oracle prices (per market oracle configuration) | RPC `latestRoundData` for Chainlink, equivalent calls for Pyth and Redstone | Same oracle the contract reads | Off-chain centralised-exchange feed (Binance, Coinbase) |
 | Decentralised-exchange liquidity and realised slippage | 1inch quote application programming interface (forward-looking) and Uniswap V3 historical swaps via subgraph (backward-looking) | Forward-looking quotes feed scenarios; historical fills feed calibration | Cross-check via CoW Swap fills |
@@ -126,9 +126,9 @@ schema and add event-specific columns.
 | Column | Type | Description |
 |---|---|---|
 | `market_id` | string | Foreign key |
-| `block_number` | uint64 |  |
-| `block_ts` | timestamp\[ns, tz=UTC\] |  |
-| `tx_hash` | string |  |
+| `block_number` | uint64 | |
+| `block_ts` | timestamp\[ns, tz=UTC\] | |
+| `tx_hash` | string | |
 | `log_index` | uint32 | For exact event ordering within a transaction |
 | Event-specific columns | (varies) | See `src/morpho_stress/data/schemas.py` |
 
@@ -147,8 +147,8 @@ sampled blocks. Built by replaying events.
 | `market_id` | string | Foreign key |
 | `borrower` | string | Address |
 | `block_number` | uint64 | Snapshot block |
-| `block_ts` | timestamp\[ns, tz=UTC\] |  |
-| `borrow_shares` | float64 | Shares (note: not assets — assets derived via current rate) |
+| `block_ts` | timestamp\[ns, tz=UTC\] | |
+| `borrow_shares` | float64 | Shares (note: not assets, assets derived via current rate) |
 | `collateral` | float64 | Collateral pledged (collateral-asset units) |
 | `borrow_assets` | float64 | Assets at the snapshot block (computed) |
 | `ltv` | float64 | Loan-to-value, computed at snapshot using oracle price |
@@ -159,8 +159,8 @@ sampled blocks. Built by replaying events.
 | Column | Type | Description |
 |---|---|---|
 | `market_id` | string | Foreign key |
-| `block_number` | uint64 |  |
-| `block_ts` | timestamp\[ns, tz=UTC\] |  |
+| `block_number` | uint64 | |
+| `block_ts` | timestamp\[ns, tz=UTC\] | |
 | `price` | float64 | Price collateral-per-loan, normalised |
 | `price_decimals_raw` | int8 | Raw decimals on the oracle (informational) |
 | `oracle_kind` | string | `chainlink`, `pyth`, etc. |
@@ -173,13 +173,13 @@ Calibration data for the slippage curve $\pi(C, V)$.
 | Column | Type | Description |
 |---|---|---|
 | `collateral_symbol` | string | `wstETH`, `WBTC`, etc. |
-| `quote_ts` | timestamp\[ns, tz=UTC\] |  |
+| `quote_ts` | timestamp\[ns, tz=UTC\] | |
 | `direction` | string | `sell_collateral_for_loan` |
 | `volume_usd` | float64 | Notional in U.S. dollars |
 | `volume_native` | float64 | Volume in collateral-asset native units |
 | `oracle_price` | float64 | Oracle price at quote time (U.S. dollars) |
 | `realized_price` | float64 | Realised decentralised-exchange execution price (U.S. dollars) |
-| `slippage_bps` | float64 | $(\text{oracle} - \text{realised}) / \text{oracle} \times 10000$ — basis points |
+| `slippage_bps` | float64 | $(\text{oracle} - \text{realised}) / \text{oracle} \times 10000$, basis points |
 | `source` | string | `1inch_quote`, `uniswap_swap`, or `cowswap_fill` |
 
 ---
@@ -330,10 +330,10 @@ Selection rule:
 
 Expected (subject to validation at run time):
 
-- **wstETH/USDC** — wrapped-staked-Ether collateral, deepest Total
+- **wstETH/USDC**, wrapped-staked-Ether collateral, deepest Total
   Value Locked;
-- **WBTC/USDC** — wrapped-Bitcoin collateral;
-- **sUSDe/USDC** — yield-bearing stablecoin collateral
+- **WBTC/USDC**, wrapped-Bitcoin collateral;
+- **sUSDe/USDC**, yield-bearing stablecoin collateral
   (stress-relevant).
 
 The top-five extension at Phase 2 close adds two more lending
@@ -392,7 +392,7 @@ Secrets via environment variables only, never committed.
 | `fetch_dex_quotes.py` | 2 hours of development | 1inch free tier rate-limited; approximately 500 quotes |
 | `fetch_uniswap_swaps.py` | 1 hour of development plus 30 minutes of compute | Subgraph |
 | `fetch_tvl.py` | 30 minutes | DeFiLlama free |
-| Validation suite | 2 hours | — |
+| Validation suite | 2 hours |, |
 | **Total** | **Approximately 14 to 16 hours** | Within Alchemy's free tier |
 
 ---

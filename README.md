@@ -1,4 +1,4 @@
-# Morpho Blue/ Liquidity Stress Testing Framework
+# Morpho Blue: Liquidity Stress Testing Framework
 
 > A liquidity stress testing framework for Morpho Blue isolated
 > lending markets and MetaMorpho vaults, adapted from Basel III
@@ -41,7 +41,7 @@ immutable parameters. It contributes:
    limitations;
 
 2. A first quantitative measure of **MetaMorpho vault curator risk
-   discipline** — the gap between observed allocation and the
+   discipline**, the gap between observed allocation and the
    allocation that minimises 30-day liquidity Value-at-Risk under the
    framework.
 
@@ -77,14 +77,47 @@ morpho-blue-liquidity-stress/
 
 | Phase | Deliverable | Status |
 |---|---|---|
-| **0** | Methodological note (`docs/METHODOLOGY.md`) | Done — version 0.3 |
-| **1** | Stress-scenario formalisation (`docs/SCENARIOS.md`) | Done — version 0.2 |
-| **2** | Data-acquisition architecture (`docs/DATA.md`), storage layer, and tests | Partial — architecture done, fetch scripts as skeletons |
+| **0** | Methodological note (`docs/METHODOLOGY.md`) | Done, version 0.3 |
+| **1** | Stress-scenario formalisation (`docs/SCENARIOS.md`) | Done, version 0.2 |
+| **2** | Data-acquisition architecture (`docs/DATA.md`), storage layer, tests, and live fetchers | Done, pipeline operational on 26 markets |
 | **3** | Modelling: AdaptiveCurveIRM, slippage curve, S1 (withdrawal run), liquidation engine | Done |
 | **3.5** | AdaptiveCurveIRM full-adaptive layer, geometric Time-Weighted Average Price oracle, S3 (oracle deviation), Monte Carlo, property-based tests | Done |
-| **4** | Historical-backtest framework (`docs/BACKTEST.md`) and three event fixtures | Done — three of three events processed |
-| **5** | Version-0.3 framework (Liquidity Coverage Ratio refactored, outflow fraction event-calibrated), slippage curve fitted with diagnostics, forward-looking analysis, public writeup (`docs/REPORT.md`) | Done — sUSDe/USDC identified as dominant tail risk |
-| **6** | Public deliverables (Dune dashboard, Mirror article publication, social-media thread) | Pending publication |
+| **4** | Historical-backtest framework (`docs/BACKTEST.md`) and three event fixtures | Done, three of three events processed |
+| **5** | Version-0.3 framework, decoupled stress scenarios (price-stress and liquidity-stress), continuous LCR criterion, Beta-scaled position distribution, asset-class slippage and drawdown calibration, extreme stress test, forward-looking analysis on 26 live markets | Done |
+| **6** | Public deliverables (Dune dashboard, Mirror article, public-facing summary) | In progress |
+
+---
+
+## Headline findings
+
+The framework applied to **26 live Morpho Blue isolated markets** on
+Ethereum mainnet (aggregate Total Value Locked of approximately
+1.7 billion U.S. dollars) produces:
+
+**Under BCBS 238-aligned 24-hour stress**:
+
+| Tier | Markets | Aggregate Total Value Locked | Share |
+|---|---|---|---|
+| red | 1 | $23M | 1.4% |
+| yellow | 7 | $737M | 43.5% |
+| green-watch | 5 | $384M | 22.6% |
+| green-strong | 13 | $552M | 32.6% |
+
+The single red market is **PT-apyUSD-18JUN2026/USDC**, a Pendle
+principal-token market with 99th-percentile bad debt at 5.7% of TVL
+under the calibrated stress scenario. The yellow tier carries the
+bulk of the protocol's material exposure, with approximately 14.5
+million U.S. dollars of cumulative 99th-percentile bad debt across
+the four mainstream BTC/ETH-collateral markets.
+
+**Under the extreme stress test** (drawdown 25%, outflow 35%,
+calibrated against the KelpDAO 2026 + USDC depeg 2023 hybrid):
+
+- 18 markets PASS, $1.22 billion of aggregate TVL (71.9% of total)
+- 8 markets FAIL, $476M (28.1% of total)
+- Failures cluster on Pendle principal tokens, leveraged liquid
+  staking markets at high liquidation thresholds, and exotic
+  synthetic stablecoins.
 
 ---
 
@@ -133,13 +166,13 @@ event-calibrated outflow fraction.
 | Gauntlet, ChaosLabs | Agent-based simulation of liquidations | We use deterministic stress shocks at empirical quantiles plus a Monte Carlo layer; explicitly acknowledged simpler than agent-based; targeted as a future extension. |
 | LlamaRisk, Block Analitica | Descriptive risk reports per market | We provide an explicit Basel-III mapping and a falsifiable hypothesis structure that they do not. |
 | Chiu, Ozdenoren, Yuan, Zhang (BIS Working Paper 1062, 2023) | Theoretical model of decentralised-finance run dynamics | We are empirical and applied; their model justifies our framework's relevance, but our work is implementation-oriented. |
-| Steakhouse Financial | Vault-curator-centric reporting | Our secondary hypothesis explicitly targets curator risk discipline as a quantifiable gap — a question they engage with operationally but do not formalise. |
+| Steakhouse Financial | Vault-curator-centric reporting | Our secondary hypothesis explicitly targets curator risk discipline as a quantifiable gap, a question they engage with operationally but do not formalise. |
 
 ---
 
 ## License
 
-MIT.
+MIT (to be confirmed before public release).
 
 ## Disclaimer
 

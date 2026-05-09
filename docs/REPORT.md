@@ -11,12 +11,31 @@
 > staked-Ether episode of May 2022 was a multi-day slow-rolling
 > repricing of the staked-Ether-to-Ether ratio rather than a 24-hour
 > liquidity stress, and our framework correctly does not classify it
-> as the latter. Applied forward to a roster of representative
-> mid-2026 markets, the framework identifies the **staked-Ethena-USDC
-> Morpho Blue market** as the dominant tail-risk market under our
-> parameterisation, with 26.6 million U.S. dollars of expected 99th-percentile
-> bad debt (approximately 19% of the market's Total Value Locked)
-> under a single-day stress.
+> as the latter. Applied forward to the **26 most material Morpho Blue
+> isolated markets on Ethereum mainnet** (approximately 1.7 billion
+> U.S. dollars of aggregate Total Value Locked), the framework
+> produces two complementary findings.
+>
+> **Under BCBS 238-aligned 24-hour stress** (drawdown floor calibrated
+> per asset class against historical events, outflow alpha calibrated
+> on stress-time withdrawal velocities), 1 market is flagged red, 7
+> are flagged yellow, and 18 fall in the green tier (split between
+> green-watch and green-strong). The single red flag is on the Pendle
+> principal-token market PT-apyUSD-18JUN2026/USDC, with 99th-percentile
+> bad debt at 5.7% of TVL. The yellow tier carries the bulk of the
+> protocol's material exposure: approximately 14.5 million U.S. dollars
+> of cumulative 99th-percentile bad debt across the four mainstream
+> BTC/ETH-collateral markets (cbBTC/USDC, wstETH/USDT, WBTC/USDC,
+> wstETH/USDC).
+>
+> **Under an extreme stress test** calibrated on the historical 99.5%-
+> confidence band (drawdown 25%, outflow alpha 35%, anchored on the
+> KelpDAO 2026 and USDC depeg 2023 episodes), 8 of 26 markets fail
+> the survival criterion (LCR < 1 or 99th-percentile bad debt above
+> 10% of TVL). The 8 failing markets carry approximately 28% of the
+> roster's TVL. Failures cluster on Pendle principal tokens, leveraged
+> liquid staking markets at high liquidation thresholds (94.5% to
+> 96.5%), and exotic synthetic stablecoins.
 >
 > The full source code, test suite, and reproducible event fixtures
 > are open-source.
@@ -306,88 +325,252 @@ in production.
 
 ### 4.1 Roster
 
-We apply the framework to a roster of five representative Morpho Blue
-markets, calibrated to publicly observable mid-2026 conditions. The
-roster is **representative**, not authoritative: the production
-deployment of this framework would source live state via the
-subgraph-and-RPC pipeline described in
-[`docs/DATA.md`](./DATA.md). For this report, the parameters are
-illustrative.
+We apply the framework to the **26 most material Morpho Blue isolated
+markets on Ethereum mainnet**, ranked by Total Value Locked, with state
+extracted from the on-chain data acquisition pipeline described in
+[`docs/DATA.md`](./DATA.md). The roster is therefore not illustrative
+but reflects the live composition of the protocol as observed during
+the analysis window. Aggregate Total Value Locked across the roster is
+approximately 1.7 billion U.S. dollars.
 
-The collateral assets in the roster are:
+The roster spans five collateral asset classes:
 
-- **wstETH**, wrapped staked Ether (a liquid-staking-token issued by Lido);
-- **WBTC**, wrapped Bitcoin (an Ethereum representation of Bitcoin);
-- **cbBTC**, Coinbase-wrapped Bitcoin;
-- **sUSDe**, staked Ethena USD (a yield-bearing synthetic stablecoin
-  issued by Ethena Labs);
-- **weETH**, wrapped, Ether-denominated EtherFi liquid restaking token.
+- **Wrapped Bitcoin variants** (cbBTC, WBTC, LBTC), $635M total
+- **Liquid staking tokens** (wstETH, weETH), $570M total
+- **Synthetic stablecoins** (sUSDe, sUSDS, wsrUSD, syrupUSDC, AA_FalconXUSDC, sUSDat, stcUSD, msY, mF-ONE, stUSDS), $552M total
+- **Pendle principal tokens** (PT-apyUSD, PT-apxUSD, PT-reUSD), $52M total
+- **Yield-bearing wrappers** (sUSDe in different quote pairs), residual
 
-| Market | Total Value Locked (millions of U.S. dollars) | Utilisation $U$ | Liquidation threshold $\Lambda$ | 99th-percentile drawdown |
+Loan assets are dominated by USDC, USDT, PYUSD, and WETH.
+
+### 4.2 Methodology: decoupled stress scenarios
+
+We evaluate each market under two scenarios in parallel rather than
+combining both stresses in a single path. The cumulative-stress
+parameterisation we initially used produced a near-uniform red flag
+across the protocol, which is methodologically inconsistent with the
+spirit of BCBS 238 (a 24-hour LCR test reflects a plausible adverse
+scenario, not the worst conceivable hybrid).
+
+**Scenario A, price stress.** Drawdown set to the class-floored
+99th-percentile from the empirical distribution. Outflow $\alpha$
+calibrated on a normal price path (no event injected), reflecting
+moderate runoff coherent with the price drop. Class minima for the
+99th-percentile drawdown are calibrated against historical events
+(see [`METHODOLOGY.md`](./METHODOLOGY.md) §3 for the full table):
+
+- Stablecoin synthetics: 5% (USDC depeg 2023 trough was 8%)
+- Liquid staking tokens: 8% (stETH discount 2022 reached 8%)
+- Wrapped Bitcoin: 10% (BTC flash crash August 2024 reached 12%)
+- Wrapped Ether: 8%
+- Pendle principal tokens: 15% (no historical anchor; calibrated against the illiquidity of Pendle secondary markets)
+
+**Scenario B, liquidity stress.** Drawdown set to the empirical
+median, $\alpha$ amplified to the 20%-30% range observed during the
+KelpDAO 2026 episode (where roughly 17% of Aave's TVL exited in 24
+hours) and the USDC depeg of March 2023 (approximately 25% on day one).
+
+The reported `Liquidity Coverage Ratio` (column LCR_v03 in the table
+below) is the worst-of-two: $\min(\mathrm{LCR}_A, \mathrm{LCR}_B)$.
+
+We additionally compute a **continuous LCR criterion**: the fraction
+of Monte Carlo paths in which $\mathrm{LCR} < 1$, denoted
+$\Pr(\mathrm{LCR} < 1)$. This is more aligned with stress-testing
+practice than a single threshold check.
+
+### 4.3 Severity criteria
+
+A market is `red` if **at least one** of the three components reaches
+red severity. The component thresholds are:
+
+| Component | Red | Yellow | Green |
+|---|---|---|---|
+| $\Pr(\mathrm{LCR} < 1)$ | $> 50\%$ | $> 10\%$ | $\leq 10\%$ |
+| Time-to-illiquid | $< 6\mathrm{h}$ | $< 18\mathrm{h}$ | $\geq 18\mathrm{h}$ |
+| Bad-debt magnitude | $\Pr[\text{bd}>0] > 30\%$ AND $\frac{\mathrm{bd}_{99}}{\mathrm{TVL}} > 5\%$ | $\frac{\mathrm{bd}_{99}}{\mathrm{TVL}} > 1\%$ | $\frac{\mathrm{bd}_{99}}{\mathrm{TVL}} \leq 0.1\%$ |
+
+Within `green`, we further distinguish:
+
+- **green-strong**: $\Pr(\mathrm{LCR}<1) < 1\%$ AND time-to-illiquid is infinite AND $\Pr[\text{bd}>0] = 0$ AND $\mathrm{bd}_{99}/\mathrm{TVL} < 0.01\%$.
+- **green-watch**: green but at least one indicator is non-negligible (typically a positive but small bad-debt tail).
+
+### 4.4 Risk panorama
+
+The roster of 26 markets resolves into the following distribution:
+
+| Tier | Markets | Aggregate Total Value Locked | Share of total |
+|---|---|---|---|
+| red | 1 | $23M | 1.4% |
+| yellow | 7 | $737M | 43.5% |
+| green-watch | 5 | $384M | 22.6% |
+| green-strong | 13 | $552M | 32.6% |
+| **Total** | **26** | **$1,696M** | **100.0%** |
+
+The market in the `red` tier is **PT-apyUSD-18JUN2026/USDC**, a Pendle
+principal token with $23.1M Total Value Locked and 82.6% utilisation.
+The bad-debt distribution under scenario A reaches a 99th-percentile
+of $1.32M, equal to 5.7% of TVL, with 68.5% probability of positive
+bad debt across the Monte Carlo paths. This reflects two compounding
+factors:
+
+- **Wide drawdown distribution under the principal-token class
+  minimum** of 15%. The Pendle secondary market is structurally less
+  liquid than Curve or Uniswap V3 stablecoin pools, and our slippage
+  curve fit (asset-class default $a = 10^{-3}$, $b = 0.65$) reflects
+  this.
+- **High utilisation combined with concentrated borrower exposure**.
+  Although the absolute Total Value Locked is moderate, the Beta-
+  scaled distribution of position-level loan-to-values puts a
+  meaningful tail of positions within liquidation distance under the
+  scenario.
+
+The seven `yellow` markets carry the bulk of the protocol's material
+tail risk in absolute dollar terms:
+
+| Market | TVL ($M) | Utilisation | $\Pr[\text{bd}>0]$ | bd $p_{99}$ | bd/TVL |
+|---|---|---|---|---|---|
+| cbBTC/USDC | 268.0 | 91.0% | 46.0% | $5.30M | 1.98% |
+| wstETH/USDT | 218.0 | 77.9% | 3.0% | $4.78M | 2.19% |
+| WBTC/USDC | 156.1 | 91.0% | 43.5% | $2.13M | 1.37% |
+| wstETH/USDC | 44.4 | 91.1% | 23.5% | $1.05M | 2.36% |
+| cbBTC/PYUSD | 22.2 | 84.8% | 3.0% | $0.33M | 1.50% |
+| PT-reUSD-25JUN2026/USDC | 14.8 | 75.5% | 11.0% | $0.44M | 3.00% |
+| PT-apxUSD-18JUN2026/USDC | 13.8 | 63.5% | 32.5% | $0.51M | 3.67% |
+
+The aggregate yellow-tier 99th-percentile bad-debt totals
+**approximately $14.5M**, concentrated on the four BTC/ETH-collateral
+mainstream markets (cbBTC/USDC, wstETH/USDT, WBTC/USDC, wstETH/USDC).
+These four markets carry $686M of TVL, or 40% of the analysed total.
+
+### 4.5 The continuous LCR criterion
+
+Across all 26 markets, $\Pr(\mathrm{LCR} < 1) = 0\%$ in our 200-path
+Monte Carlo. **No market falls below the LCR threshold of 1 under the
+scenario distribution we sampled.** This is a positive signal: under
+BCBS 238-aligned stress, Morpho Blue's overcollateralisation (typical
+average loan-to-value of $0.65 \times \mathrm{LLTV}$ in our calibration)
+combined with healthy Uniswap V3 secondary liquidity is sufficient to
+keep the High-Quality Liquid Asset coverage above stressed outflows.
+
+We caveat this finding heavily. The LCR criterion as parameterised here
+does not detect risks that materialise above the 99th percentile of
+the empirical drawdown distribution. To probe protocol behaviour under
+scenarios that exceed observed history, we run a separate extreme
+stress test, described next.
+
+---
+
+## 4bis. Extreme stress test
+
+### 4bis.1 Calibration
+
+We define an **extreme scenario** combining the most adverse parameter
+values observed across the three calibration events:
+
+- **Drawdown** = 25%, between the USDC depeg trough (8%) and stETH
+  discount (8%), amplified to the 99.5th-percentile band of historical
+  DeFi stress events.
+- **Outflow $\alpha$** = 35%, between the KelpDAO 2026 24-hour Aave
+  outflow (~17%) and the USDC depeg day-one outflow (~25%), upper-
+  bounded by the most aggressive coordinated stress observed in the
+  Curve Wars episodes of 2023.
+
+Both parameters are held fixed (no Monte Carlo over the drawdown
+distribution; the extreme is a deterministic worst-case).
+
+### 4bis.2 Survival criterion
+
+A market `survives` the extreme scenario if **both** are true:
+
+- $\mathrm{LCR}_{\text{extreme}} \geq 1.0$
+- $\mathrm{bd}_{99} / \mathrm{TVL} < 10\%$
+
+The 10% threshold is the materiality cut-off used in capital adequacy
+frameworks (Tier 1 capital ratio thresholds in the Basel III risk-
+weighted-asset framework typically classify exposures above 10% loss-
+given-default as materially impaired).
+
+### 4bis.3 Result
+
+| Verdict | Markets | Aggregate Total Value Locked | Share of total |
+|---|---|---|---|
+| PASS | 18 | $1,220M | 71.9% |
+| FAIL | 8 | $476M | 28.1% |
+| **Total** | **26** | **$1,696M** | **100.0%** |
+
+The eight markets that fail the extreme stress test are:
+
+| Market | TVL ($M) | bd $p_{99}$ ($M) | bd/TVL | Positions liquidated ($p_{99}$) |
 |---|---|---|---|---|
-| wstETH/USDC | 350 | 88.0% | 86.0% | 14% |
-| WBTC/USDC | 180 | 84.0% | 86.0% | 16% |
-| cbBTC/USDC | 95 | 91.0% | 86.0% | 16% |
-| **sUSDe/USDC** | 140 | **93.0%** | **91.5%** | 6% |
-| weETH/USDC | 80 | 89.0% | 86.0% | 18% |
+| msY/USDC | 12.9 | 2.09 | 16.18% | 4 |
+| PT-reUSD-25JUN2026/USDC | 14.8 | 2.23 | 15.03% | 8 |
+| wstETH/USDC | 44.4 | 6.41 | 14.44% | 49 |
+| sUSDat/AUSD | 19.0 | 2.33 | 12.26% | 23 |
+| PT-apyUSD-18JUN2026/USDC | 23.1 | 2.48 | 10.74% | 66 |
+| wstETH/WETH (LLTV 96.50%) | 90.6 | 9.53 | 10.52% | 18 |
+| weETH/WETH (LLTV 94.50%) | 52.9 | 5.45 | 10.29% | 18 |
+| wstETH/USDT | 218.0 | 22.11 | 10.14% | 21 |
 
-### 4.2 Risk ranking
+Total bad debt under extreme stress, summed across the eight failing
+markets, is **approximately $52.6M**, or 3.1% of the analysed Total
+Value Locked.
 
-| Market | Severity | Liquidity Coverage Ratio | $\alpha$ | Time-to-illiquid | Probability bad debt > 0 | 99th-percentile bad debt |
-|---|---|---|---|---|---|---|
-| **sUSDe/USDC** | red | 5.5 | 40% | 4.2h | **100%** | **26.6 million U.S. dollars** |
-| weETH/USDC | red | 7.2 | 56% | 4.8h | 14% | 0.5 million U.S. dollars |
-| cbBTC/USDC | red | 7.6 | 53% | 4.1h | 4% | 0.1 million U.S. dollars |
-| WBTC/USDC | red | 7.6 | 53% | 7.3h | 4% | 0.0 million U.S. dollars |
-| wstETH/USDC | red | 8.0 | 50% | 5.7h | 2% | 0.0 million U.S. dollars |
+### 4bis.4 Reading the failures
 
-All five markets are flagged on the time-to-illiquid criterion under
-the event-calibrated $\alpha$. This is expected: the calibrated
-$\alpha$ ranges from 50% to 56% across the roster, driven by the
-99th-percentile drawdown distribution, and a 50% withdrawal in 24
-hours overwhelms the 7-to-15% headroom typical of Morpho markets.
+Three patterns emerge across the failing markets:
 
-**The time-to-illiquid criterion is therefore not the discriminating
-signal in the forward-looking analysis**; the discrimination comes
-from the bad-debt probability.
+**Pattern 1, Pendle principal tokens.** Two of the three Pendle PT
+markets in the roster fail. The cause is the combination of (a) the
+class-floored 15% drawdown which is itself plausible given the
+illiquidity of Pendle secondaries during stress, and (b) the steep
+slippage curve under our class default. PT tokens are structurally
+exposed to liquidity gap-risk during volatility regimes, and the
+framework consistently flags this.
 
-### 4.3 The sUSDe/USDC market: the dominant tail risk
+**Pattern 2, Liquid staking with high liquidation thresholds.** The
+two markets `wstETH/WETH (LLTV 96.50%)` and `weETH/WETH (LLTV 94.50%)`
+fail. These are leverage-tier markets (the protocol intentionally lists
+multiple instances per pair to offer different leverage profiles); the
+high liquidation threshold compresses the headroom between the average
+position loan-to-value (Beta-scaled at $0.65 \times \mathrm{LLTV} \approx 0.62$ for the 96.5%-tier) and the liquidation threshold.
+A 25% price drop sweeps a meaningful share of positions into
+liquidation. By contrast, the same pair listed at LLTV 86.50% passes
+the extreme test, illustrating the materiality of the LLTV choice for
+leveraged collateral.
 
-The sUSDe/USDC market is the outlier: the probability of positive bad
-debt is estimated at 100% across our empirical drawdown distribution,
-with a 99th-percentile bad-debt of 26.6 million U.S. dollars on a Total Value
-Locked of 140 million U.S. dollars, or **approximately 19% of the market's Total
-Value Locked**. The mechanism is structural rather than a quirk of
-our parameterisation:
+**Pattern 3, Exotic synthetic stablecoins.** Two markets, `msY/USDC`
+and `sUSDat/AUSD`, fail despite being classified as stablecoin
+synthetics. We caveat these results: both markets have very low
+Total Value Locked (under $20M) and few active positions (4 and 23
+respectively at the 99th percentile of liquidations). The Beta-scaled
+position distribution at low cardinality has high variance: with only
+a handful of positions, the framework over-estimates the impact of a
+single outlier. These two results merit further investigation in a
+production deployment with larger sample sizes.
 
-- **Tight buffer between average loan-to-value and the liquidation
-  threshold**: with average loan-to-value at 86% and a liquidation
-  threshold at 91.5%, the headroom is 5.5%. Any drawdown larger than
-  this margin liquidates the bulk of positions.
-- **High utilisation**: $U = 93\%$ leaves little instant liquidity to
-  absorb withdrawals during stress.
-- **Slippage worse than for stablecoin-to-stablecoin pairs**:
-  sUSDe-to-USDC liquidity on Uniswap V3 is meaningfully thinner than
-  USDC-to-USDT pairs. Our fitted parameter $a$ is roughly four times
-  that of major stablecoin pools (see [`SCENARIOS.md`](./SCENARIOS.md)
-  §4.1 for the slippage parameterisation).
-- **Empirical drawdown is non-zero**: even with a 99th-percentile
-  drawdown of only 6%, the distribution has support near and above
-  the liquidation-threshold margin, so every Monte Carlo path that
-  samples a tail drawdown produces some bad debt.
+### 4bis.5 Notable corner cases
 
-This finding is **structural**: the same conclusion holds across
-reasonable parameter perturbations. Lowering the liquidation
-threshold to 90% or the average loan-to-value to 80% leaves
-sUSDe/USDC as the riskiest market in the roster, by a wide margin on
-the bad-debt probability.
+Three results in the extreme-stress run merit investigation in a
+production setting and are reported here as **known limitations**:
 
-The actionable implication, in the language of MetaMorpho vault
-curators: a vault with material exposure to sUSDe/USDC carries a
-disproportionate share of the roster's tail risk. This is consistent
-with what curators have reported empirically following past Ethena
-episodes; the contribution of our framework is to reproduce the
-qualitative ranking with quantitative pass-or-fail criteria.
+- **stcUSD/USDT**: passes the extreme test with zero positions
+  liquidated and zero bad debt. The synthetic stablecoin's price
+  feed may be partially insulated from the 25% drawdown injected
+  in the scenario; if the oracle returns a yield-adjusted price
+  rather than the spot, our scenario does not affect it. This warrants
+  inspection of the oracle configuration.
+
+- **LBTC/PYUSD**: passes with three positions liquidated but zero
+  realised bad debt. Liquidations close out cleanly at the
+  liquidation incentive threshold, leaving no residual loss.
+  Plausible given the small number of positions ($n = 7$) and a
+  benign Beta-scaled position distribution at this cardinality, but
+  worth verifying against position-level reconstruction.
+
+- **msY/USDC**: passes the nominal scenario as `green-strong` but fails
+  the extreme. As described in Pattern 3, this is plausibly an artefact
+  of small-sample variance in the position distribution rather than a
+  genuine structural weakness.
 
 ---
 
@@ -400,10 +583,12 @@ risk reporting often omits such caveats.
 1. **The bad-debt distribution has heavy tails on a small sample.**
   Our Monte Carlo simulations use 50 to 200 paths drawn from a
   fitted Beta empirical distribution. The 99th-percentile estimate
-  has wide confidence intervals; for sUSDe/USDC at probability 100%
-  the result is reliable to sampling, but tail magnitudes for
-  less-stressed markets (wstETH, WBTC) are small numbers dominated
-  by sampling noise.
+  has wide confidence intervals; for the high-probability red-flag
+  market (PT-apyUSD-18JUN2026/USDC at 68.5%) the result is reliable to
+  sampling, but tail magnitudes for less-stressed markets are small
+  numbers dominated by sampling noise. Markets with very few active
+  positions (under 20) are particularly subject to small-sample
+  variance in the Beta-scaled position distribution.
 2. **Counterfactual events are weakly identified.** The USDC and
   staked-Ether events predate Morpho Blue. We synthesised position
   distributions for them, calibrated to plausible parameters of

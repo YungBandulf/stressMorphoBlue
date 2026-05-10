@@ -97,6 +97,25 @@ To probe the protocol under conditions exceeding observed history, we run a sepa
 
 ---
 
+## Findings, MetaMorpho curator discipline
+
+Beyond the per-market view, we apply the tier classification to score the **discipline of the top 20 MetaMorpho vaults** by Total Value Locked. The score is a TVL-weighted exposure to severity tiers (red=4, yellow=2, green-watch=1, green-strong=0). A score of 0 is fully conservative; 2 is significant yellow exposure; above 2 warrants curator-side review.
+
+The result is a **structural finding** rather than a quality ranking: **the four largest USDC-asset vaults converge at a score of approximately 2.0**, reflecting near-exclusive allocation to mainstream BTC/ETH-collateral markets that the framework classifies as yellow.
+
+| Vault | TVL ($M) | Score | yellow% allocation |
+|---|---|---|---|
+| Gauntlet USDC Prime | 150.9 | 2.00 | 100% |
+| Steakhouse USDC | 129.4 | 1.94 | 96.8% |
+| Vault Bridge USDC | 48.9 | 2.00 | 100% |
+| Hakutora USDC | 16.4 | 2.00 | 100% |
+
+This is not curator imprudence: it is that **the USDC vault product structurally concentrates the protocol's material tail risk** in a small number of mainstream markets where the bulk of DeFi USDC yield originates. The risk is not idiosyncratic to any one curator. By contrast, RLUSD-asset and PYUSD-asset vaults (Sentora) achieve scores below 1.0 by diversifying across green-strong synthetic-stablecoin markets.
+
+The finding is reproducible end-to-end: `python scripts/fetch_metamorpho_vaults.py --top 20`.
+
+---
+
 ## Honest limitations
 
 We treat known failures as data:

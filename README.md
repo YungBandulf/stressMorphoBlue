@@ -40,10 +40,19 @@ immutable parameters. It contributes:
    Supervision in document BCBS 238, 2013), with stated mapping
    limitations;
 
-2. A first quantitative measure of **MetaMorpho vault curator risk
-   discipline**, the gap between observed allocation and the
-   allocation that minimises 30-day liquidity Value-at-Risk under the
-   framework.
+2. A **MetaMorpho vault curator discipline score**, the TVL-weighted
+   exposure of each vault to the framework's severity tiers (red /
+   yellow / green-watch / green-strong). The lower the score, the
+   more conservative the vault. Implementation in
+   `scripts/fetch_metamorpho_vaults.py`.
+
+3. A **decoupled stress scenario architecture** that separates price
+   stress (BCBS 238 24h LCR with class-floored drawdowns) from
+   liquidity stress (amplified runoff alpha) rather than cumulating
+   both into a single scenario, and an **extreme stress test**
+   (drawdown 25%, alpha 35%) calibrated on the worst observed DeFi
+   stress events to probe protocol behaviour beyond the empirical
+   distribution.
 
 The work is calibrated on the KelpDAO collateral exploit of April
 2026 as a primary stress anchor, alongside the USDC depeg of March
@@ -62,12 +71,24 @@ morpho-blue-liquidity-stress/
 │   ├── DATA.md              # Data architecture
 │   ├── BACKTEST.md          # Backtest specification
 │   ├── REPORT.md            # Public writeup (Mirror.xyz-ready)
+│   ├── BENCHMARK.md         # Comparison vs LlamaRisk / Block Analitica / Gauntlet / ChaosLabs
 │   └── references.md        # Annotated bibliography
 ├── src/                     # Python implementation
 ├── data/                    # Local Parquet cache (gitignored) and event fixtures
 ├── notebooks/               # Reproducible analyses
-├── scripts/                 # Data-acquisition entry points
-├── tests/                   # pytest suite
+├── scripts/                 # Data-acquisition + analysis entry points
+│   ├── select_markets.py            # Top N markets by TVL
+│   ├── fetch_markets.py             # Market metadata
+│   ├── fetch_market_state.py        # On-chain state snapshots
+│   ├── fetch_oracle_prices.py       # Oracle price history
+│   ├── fetch_events.py              # Borrow/Repay/Supply/Withdraw/Liquidate events
+│   ├── fetch_uniswap_quotes.py      # DEX slippage curves
+│   ├── fetch_tvl.py                 # Aggregate TVL
+│   ├── enrich_positions.py          # Reconstruct positions from events
+│   ├── enrich_forward_looking.py    # Build profiles + run evaluation
+│   ├── fetch_metamorpho_vaults.py   # MetaMorpho vault curator discipline
+│   └── diagnose_corner_cases.py     # Investigate edge-case markets
+├── tests/                   # pytest suite (145 tests)
 └── README.md
 ```
 
@@ -84,7 +105,8 @@ morpho-blue-liquidity-stress/
 | **3.5** | AdaptiveCurveIRM full-adaptive layer, geometric Time-Weighted Average Price oracle, S3 (oracle deviation), Monte Carlo, property-based tests | Done |
 | **4** | Historical-backtest framework (`docs/BACKTEST.md`) and three event fixtures | Done, three of three events processed |
 | **5** | Version-0.3 framework, decoupled stress scenarios (price-stress and liquidity-stress), continuous LCR criterion, Beta-scaled position distribution, asset-class slippage and drawdown calibration, extreme stress test, forward-looking analysis on 26 live markets | Done |
-| **6** | Public deliverables (Dune dashboard, Mirror article, public-facing summary) | In progress |
+| **6** | Public deliverables (Dune dashboard, Mirror article, public-facing summary) | Done |
+| **7** | Empirical position-level reconstruction (`scripts/enrich_positions.py`), MetaMorpho vault curator discipline score (`scripts/fetch_metamorpho_vaults.py`), corner case diagnostic (`scripts/diagnose_corner_cases.py`), multi-day NSFR-style horizon (`--horizon-days N`), benchmark vs incumbent frameworks (`docs/BENCHMARK.md`) | Done |
 
 ---
 
@@ -118,6 +140,16 @@ calibrated against the KelpDAO 2026 + USDC depeg 2023 hybrid):
 - Failures cluster on Pendle principal tokens, leveraged liquid
   staking markets at high liquidation thresholds, and exotic
   synthetic stablecoins.
+
+**MetaMorpho vault curator discipline scores** (top 20 vaults):
+
+The four largest USDC-asset vaults (Gauntlet USDC Prime, Steakhouse
+USDC, Vault Bridge USDC, Hakutora USDC) converge at a curator score of
+approximately 2.0, reflecting near-exclusive allocation to mainstream
+yellow-tier markets. This is a structural feature of the USDC product:
+the bulk of DeFi USDC yield originates from these markets. PYUSD- and
+RLUSD-asset vaults (Sentora) score below 1.0 through diversification
+across green-strong synthetic-stablecoin markets.
 
 ---
 

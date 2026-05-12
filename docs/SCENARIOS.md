@@ -507,7 +507,7 @@ which.
 | Metric | Type | Format | Threshold |
 |---|---|---|---|
 | $\mathrm{LCR_{oc}}$ | float | percentage | green $\geq 150\%$ / yellow $\in [100\%, 150\%)$ / red $< 100\%$ |
-| Time-to-illiquid | int | blocks (or null) | green $\geq 7$d / yellow $\in [24\text{h}, 7\text{d})$ / red $< 24$h |
+| Time-to-illiquid | int | blocks (or null) | \text{green } \geq 7\text{d} \text{ / yellow } \in [24\text{h}, 7\text{d}) \text{ / red } < 24\text{h} |
 | Expected bad debt | float | U.S. dollars (point mode: scalar; Monte Carlo: distribution) | green 0 / yellow $< 1\%$ Total Value Locked / red $\geq 1\%$ |
 | Slippage shortfall | float | U.S. dollars | reported, no threshold |
 | Cascade depth | int | count | reported, no threshold |
